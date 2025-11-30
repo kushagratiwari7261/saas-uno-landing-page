@@ -118,7 +118,7 @@ const SaaSUNOLanding = () => {
       {isLoading && (
         <div className="loading-screen">
           <div className="loading-logo">
-            <h1>SaaSUNO</h1>
+            <h1>SaasUNO</h1>
             <div className="subtitle">Digital Transformation</div>
           </div>
           
@@ -151,7 +151,7 @@ const SaaSUNOLanding = () => {
         <nav className="navbar">
           <div className="nav-container">
             <div className="logo">
-              <h2>SaaSUNO</h2>
+              <h2>SaasUNO</h2>
             </div>
             <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
               <a href="#services" onClick={(e) => { e.preventDefault(); scrollToSection('services'); }}>Services</a>
@@ -393,7 +393,7 @@ const SaaSUNOLanding = () => {
                   </div>
                   <div className="contact-item">
                     <strong>Company</strong>
-                    <span>SaaSUNO Technologies</span>
+                    <span>SaasUNO Technologies</span>
                   </div>
                   <div className="contact-item">
                     <strong>Services</strong>
@@ -453,7 +453,7 @@ const SaaSUNOLanding = () => {
           <div className="container">
             <div className="footer-content">
               <div className="footer-brand">
-                <h3>SaaSUNO</h3>
+                <h3>SaasUNO</h3>
                 <p>Building your digital future, one innovative solution at a time.</p>
               </div>
               <div className="footer-links">
@@ -464,7 +464,7 @@ const SaaSUNOLanding = () => {
               </div>
             </div>
             <div className="footer-bottom">
-              <p>&copy; 2024 SaaSUNO Technologies. All rights reserved.</p>
+              <p>&copy; 2024 SaasUNO Technologies. All rights reserved.</p>
             </div>
           </div>
         </footer>
