@@ -12,6 +12,8 @@ const SaaSUNOLanding = () => {
     company: '',
     message: ''
   });
+  const [submitting, setSubmitting] = useState(false);
+  // Removed submitStatus since it's not being used
 
   const sealFreightImages = [
     'seal1.png',
@@ -24,8 +26,8 @@ const SaaSUNOLanding = () => {
   // Fast loading simulation
   useEffect(() => {
     let progress = 0;
-    const duration = 1800; // 1.8 seconds total loading time
-    const intervalTime = 20; // Update every 20ms for smooth progress
+    const duration = 1800;
+    const intervalTime = 20;
     const totalSteps = duration / intervalTime;
     const increment = 100 / totalSteps;
 
@@ -35,17 +37,15 @@ const SaaSUNOLanding = () => {
         progress = 100;
         clearInterval(loadingInterval);
         
-        // Immediately transition after reaching 100%
         setTimeout(() => {
           setIsLoading(false);
           document.body.classList.remove('loading');
           document.body.classList.add('loaded');
-        }, 100); // Very short delay to show 100%
+        }, 100);
       }
       setLoadingProgress(progress);
     }, intervalTime);
 
-    // Set body class for loading state
     document.body.classList.add('loading');
 
     return () => {
@@ -89,11 +89,36 @@ const SaaSUNOLanding = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    alert('Thank you for your inquiry! We will contact you soon.');
-    setFormData({ name: '', email: '', company: '', message: '' });
+    setSubmitting(true);
+    
+    try {
+      // Use relative path for Vercel
+      const apiUrl = '/api/requests';
+      
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert('Thank you for your inquiry! We will contact you soon.');
+        setFormData({ name: '', email: '', company: '', message: '' });
+      } else {
+        alert(`Error: ${data.message || 'Failed to submit request'}`);
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      alert('Network error. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const goToSlide = (index) => {
@@ -155,6 +180,7 @@ const SaaSUNOLanding = () => {
             </div>
             <div className={`nav-menu ${isMenuOpen ? 'active' : ''}`}>
               <a href="#services" onClick={(e) => { e.preventDefault(); scrollToSection('services'); }}>Services</a>
+              <a href="#differentiators" onClick={(e) => { e.preventDefault(); scrollToSection('differentiators'); }}>Differentiators</a>
               <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Workflow</a>
               <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
@@ -182,7 +208,7 @@ const SaaSUNOLanding = () => {
               </button>
             </div>
             <div className="hero-image">
-              <img src="/images/1.png" alt="SaaS Platform" />
+              <img src={`${process.env.PUBLIC_URL}/images/7.png`} alt="SaaS Platform" />
             </div>
           </div>
         </section>
@@ -223,6 +249,79 @@ const SaaSUNOLanding = () => {
           </div>
         </section>
 
+        {/* What Makes SaasUNO Different Section */}
+        <section id="differentiators" className="differentiators">
+          <div className="container">
+            <h2>How SaasUNO Transforms Digital Ecosystems</h2>
+            <p className="section-subtitle">
+              Our integrated platform doesn't just solve problems—it transforms entire ecosystems. 
+              See how our comprehensive approach delivers measurable impact across multiple dimensions.
+            </p>
+            
+            <div className="differentiators-grid">
+              <div className="differentiator-card">
+                <div className="differentiator-icon">⚡</div>
+                <h3>End-to-End Research & Talent Orchestration</h3>
+                <p>
+                  Unlike fragmented systems, our unified platform seamlessly integrates Research Management, 
+                  Fellowship Programs, Grant Lifecycle Management, and Mentor Networks. This holistic approach 
+                  reduces administrative overhead by 60% while increasing research output and talent retention.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">40%</span>
+                    <span className="stat-label">Faster Grant Processing</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">75%</span>
+                    <span className="stat-label">Improved Mentor Matching</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="differentiator-card">
+                <div className="differentiator-icon">🚀</div>
+                <h3>Comprehensive Startup & Investor Ecosystem</h3>
+                <p>
+                  We provide a complete ecosystem connecting startups, investors, and accelerators through 
+                  Portfolio Management, Fund Administration, Real-time Analytics, and Investor Relations modules. 
+                  This integrated approach increases funding success rates and investor confidence significantly.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">50%</span>
+                    <span className="stat-label">Higher Funding Success</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">3.5x</span>
+                    <span className="stat-label">ROI for Investors</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="differentiator-card">
+                <div className="differentiator-icon">🎯</div>
+                <h3>Dynamic Learning & Community Platform</h3>
+                <p>
+                  Our platform creates thriving ecosystems by combining Learning Management, Community Engagement, 
+                  Alumni Networks, and Communication Tools. This fosters continuous knowledge sharing, professional 
+                  growth, and sustainable community development.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">85%</span>
+                    <span className="stat-label">User Engagement Rate</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">90%</span>
+                    <span className="stat-label">Alumni Network Retention</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Workflow Integration */}
         <section id="workflow" className="workflow">
           <div className="container">
@@ -243,7 +342,7 @@ const SaaSUNOLanding = () => {
                 </div>
               </div>
               <div className="workflow-image">
-                <img src="/images/7.png" alt="Workflow Integration" />
+                <img src={`${process.env.PUBLIC_URL}/images/1.png`} alt="Workflow Integration" />
               </div>
             </div>
           </div>
@@ -272,12 +371,12 @@ const SaaSUNOLanding = () => {
               </div>
             </div>
             <div className="process-image">
-              <img src="/images/2.png" alt="Development Process" />
+              <img src={`${process.env.PUBLIC_URL}/images/2.png`} alt="Development Process" />
             </div>
           </div>
         </section>
 
-        {/* Big Client Showcase - Like Pactle.co */}
+        {/* Big Client Showcase */}
         <section id="clients" className="client-showcase">
           <div className="container">
             <div className="client-showcase-content">
@@ -315,14 +414,13 @@ const SaaSUNOLanding = () => {
                         className="carousel-slide"
                       >
                         <img 
-                          src={`/images/${image}`} 
+                          src={`${process.env.PUBLIC_URL}/images/${image}`} 
                           alt={`Seal Freight Solution ${index + 1}`}
                         />
                       </div>
                     ))}
                   </div>
                   
-                  {/* Navigation arrows */}
                   <button className="carousel-btn carousel-btn-prev" onClick={goToPrev}>
                     ‹
                   </button>
@@ -330,7 +428,6 @@ const SaaSUNOLanding = () => {
                     ›
                   </button>
                   
-                  {/* Dots indicator */}
                   <div className="carousel-dots">
                     {sealFreightImages.map((_, index) => (
                       <button
@@ -372,7 +469,7 @@ const SaaSUNOLanding = () => {
                 </ol>
               </div>
               <div className="action-image">
-                <img src="/images/5.png" alt="Action Plan" />
+                <img src={`${process.env.PUBLIC_URL}/images/5.png`} alt="Action Plan" />
               </div>
             </div>
           </div>
@@ -383,6 +480,7 @@ const SaaSUNOLanding = () => {
           <div className="container">
             <h2>Start Your Digital Transformation</h2>
             <p className="contact-subtitle">Contact us for a comprehensive consultation and project assessment</p>
+            
             <div className="contact-content">
               <div className="contact-info">
                 <h3>Get In Touch</h3>
@@ -410,6 +508,7 @@ const SaaSUNOLanding = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
@@ -420,6 +519,7 @@ const SaaSUNOLanding = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
@@ -430,6 +530,7 @@ const SaaSUNOLanding = () => {
                     value={formData.company}
                     onChange={handleInputChange}
                     required
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
@@ -440,9 +541,12 @@ const SaaSUNOLanding = () => {
                     onChange={handleInputChange}
                     rows="5"
                     required
+                    disabled={submitting}
                   ></textarea>
                 </div>
-                <button type="submit" className="submit-btn">Send Request</button>
+                <button type="submit" className="submit-btn" disabled={submitting}>
+                  {submitting ? 'Submitting...' : 'Send Request'}
+                </button>
               </form>
             </div>
           </div>
@@ -458,6 +562,7 @@ const SaaSUNOLanding = () => {
               </div>
               <div className="footer-links">
                 <a href="#services" onClick={(e) => { e.preventDefault(); scrollToSection('services'); }}>Services</a>
+                <a href="#differentiators" onClick={(e) => { e.preventDefault(); scrollToSection('differentiators'); }}>Differentiators</a>
                 <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Solutions</a>
                 <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
                 <a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a>
