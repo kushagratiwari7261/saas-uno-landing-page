@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
-const SaaSUNOLanding = () => {
+// Import Admin Dashboard Component
+import AdminDashboard from './components/AdminDashboard';
+
+// Main Landing Page Component
+const SaaSUNOLandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,6 +18,7 @@ const SaaSUNOLanding = () => {
     message: ''
   });
   const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
 
   const sealFreightImages = [
@@ -95,11 +101,13 @@ const SaaSUNOLanding = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    if (submitSuccess) setSubmitSuccess(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setSubmitSuccess(false);
     
     try {
       // Handle localhost vs production differently
@@ -113,6 +121,7 @@ const SaaSUNOLanding = () => {
         alert('✅ Form submitted successfully!\n\n📝 This is a local test. On Vercel, this would save to database.\n\nName: ' + formData.name + '\nEmail: ' + formData.email + '\nCompany: ' + formData.company);
         
         setFormData({ name: '', email: '', company: '', message: '' });
+        setSubmitSuccess(true);
         
       } else {
         // Production on Vercel - call real API
@@ -140,10 +149,11 @@ const SaaSUNOLanding = () => {
           const data = await response.json();
           
           if (response.ok) {
-            alert('✅ ' + data.message);
+            alert('✅ ' + (data.message || 'Thank you! Your request has been submitted.'));
             setFormData({ name: '', email: '', company: '', message: '' });
+            setSubmitSuccess(true);
           } else {
-            alert('❌ ' + (data.message || 'Submission failed'));
+            alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
           }
         } else {
           // Handle non-JSON response
@@ -166,6 +176,8 @@ const SaaSUNOLanding = () => {
       } else {
         if (error.message.includes('Failed to fetch')) {
           alert('🌐 Network error. Please check your internet connection.');
+        } else if (error.message.includes('Unexpected token')) {
+          alert('⚠️ API endpoint not configured properly.\n\nCheck that api/requests.js exists in your project.');
         } else {
           alert('⚠️ Error: ' + error.message);
         }
@@ -240,6 +252,16 @@ const SaaSUNOLanding = () => {
               <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
               <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
+              <a href="/admin" className="admin-link" style={{
+                marginLeft: '20px', 
+                color: '#667eea', 
+                border: '1px solid #667eea', 
+                padding: '8px 16px', 
+                borderRadius: '4px',
+                fontSize: '14px'
+              }}>
+                Admin
+              </a>
               {isLocalhost && (
                 <span style={{ 
                   color: '#ff6b6b', 
@@ -261,9 +283,288 @@ const SaaSUNOLanding = () => {
           </div>
         </nav>
 
-        {/* Rest of your component remains the same - keep all sections */}
-        
-        {/* Contact Section - Updated */}
+        {/* Hero Section */}
+        <section className="hero">
+          <div className="hero-container">
+            <div className="hero-content">
+              <h1>Building Digital Excellence with SaaS Solutions</h1>
+              <p>Transform your business with cutting-edge software solutions tailored to your unique needs and challenges.</p>
+              <button 
+                className="hero-cta" 
+                onClick={() => scrollToSection('contact')}
+              >
+                Start Your Journey
+              </button>
+            </div>
+            <div className="hero-image">
+              <img src={`${process.env.PUBLIC_URL}/images/7.png`} alt="SaaS Platform" />
+            </div>
+          </div>
+        </section>
+
+        {/* Services Section */}
+        <section id="services" className="services">
+          <div className="container">
+            <h2>Our Services</h2>
+            <div className="services-grid">
+              <div className="service-card">
+                <h3>Development</h3>
+                <ul>
+                  <li>Web Development</li>
+                  <li>Mobile App Development</li>
+                  <li>SaaS Product Development</li>
+                  <li>AI/ML Development</li>
+                </ul>
+              </div>
+              <div className="service-card">
+                <h3>Consulting</h3>
+                <ul>
+                  <li>Cloud Computing</li>
+                  <li>UI/UX Design</li>
+                  <li>Software Consulting</li>
+                  <li>IT Support</li>
+                </ul>
+              </div>
+              <div className="service-card">
+                <h3>Solutions</h3>
+                <ul>
+                  <li>Digital Transformation</li>
+                  <li>Workflow Automation</li>
+                  <li>Data Analytics</li>
+                  <li>System Integration</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* What Makes SaasUNO Different Section */}
+        <section id="differentiators" className="differentiators">
+          <div className="container">
+            <h2>How SaasUNO Transforms Digital Ecosystems</h2>
+            <p className="section-subtitle">
+              Our integrated platform doesn't just solve problems—it transforms entire ecosystems. 
+              See how our comprehensive approach delivers measurable impact across multiple dimensions.
+            </p>
+            
+            <div className="differentiators-grid">
+              <div className="differentiator-card">
+                <div className="differentiator-icon"></div>
+                <h3>End-to-End Research & Talent Orchestration</h3>
+                <p>
+                  Unlike fragmented systems, our unified platform seamlessly integrates Research Management, 
+                  Fellowship Programs, Grant Lifecycle Management, and Mentor Networks. This holistic approach 
+                  reduces administrative overhead by 60% while increasing research output and talent retention.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">40%</span>
+                    <span className="stat-label">Faster Grant Processing</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">75%</span>
+                    <span className="stat-label">Improved Mentor Matching</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="differentiator-card">
+                <div className="differentiator-icon"></div>
+                <h3>Comprehensive Startup & Investor Ecosystem</h3>
+                <p>
+                  We provide a complete ecosystem connecting startups, investors, and accelerators through 
+                  Portfolio Management, Fund Administration, Real-time Analytics, and Investor Relations modules. 
+                  This integrated approach increases funding success rates and investor confidence significantly.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">50%</span>
+                    <span className="stat-label">Higher Funding Success</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">3.5x</span>
+                    <span className="stat-label">ROI for Investors</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="differentiator-card">
+                <div className="differentiator-icon"></div>
+                <h3>Dynamic Learning & Community Platform</h3>
+                <p>
+                  Our platform creates thriving ecosystems by combining Learning Management, Community Engagement, 
+                  Alumni Networks, and Communication Tools. This fosters continuous knowledge sharing, professional 
+                  growth, and sustainable community development.
+                </p>
+                <div className="differentiator-stats">
+                  <div className="stat">
+                    <span className="stat-value">85%</span>
+                    <span className="stat-label">User Engagement Rate</span>
+                  </div>
+                  <div className="stat">
+                    <span className="stat-value">90%</span>
+                    <span className="stat-label">Alumni Network Retention</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Workflow Integration */}
+        <section id="workflow" className="workflow">
+          <div className="container">
+            <h2>Seamless Workflow Integration</h2>
+            <div className="workflow-grid">
+              <div className="workflow-features">
+                <div className="feature">
+                  <h4>Smart Search & Cloud Sync</h4>
+                  <p>Advanced search capabilities with real-time cloud synchronization across all devices.</p>
+                </div>
+                <div className="feature">
+                  <h4>Q4 Analytics & Reporting</h4>
+                  <p>Comprehensive analytics dashboard with customizable reports and real-time insights.</p>
+                </div>
+                <div className="feature">
+                  <h4>Secure Data Management</h4>
+                  <p>Enterprise-grade security with end-to-end encryption and multi-platform support.</p>
+                </div>
+              </div>
+              <div className="workflow-image">
+                <img src={`${process.env.PUBLIC_URL}/images/1.png`} alt="Workflow Integration" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Process Section */}
+        <section id="process" className="process">
+          <div className="container">
+            <h2>Our Process</h2>
+            <div className="process-steps">
+              <div className="step">
+                <h3>STRATEGY</h3>
+                <p>Comprehensive analysis and planning to define your digital transformation roadmap.</p>
+              </div>
+              <div className="step">
+                <h3>DESIGN</h3>
+                <p>User-centric design approach creating intuitive and engaging user experiences.</p>
+              </div>
+              <div className="step">
+                <h3>DEVELOPMENT</h3>
+                <p>Agile development methodology ensuring quality and timely delivery.</p>
+              </div>
+              <div className="step">
+                <h3>DEPLOYMENT</h3>
+                <p>Seamless deployment with ongoing support and optimization services.</p>
+              </div>
+            </div>
+            <div className="process-image">
+              <img src={`${process.env.PUBLIC_URL}/images/2.png`} alt="Development Process" />
+            </div>
+          </div>
+        </section>
+
+        {/* Big Client Showcase */}
+        <section id="clients" className="client-showcase">
+          <div className="container">
+            <div className="client-showcase-content">
+              <div className="client-info">
+                <h2>Featured Client</h2>
+                <h3>Seal Freight</h3>
+                <p className="client-industry">Logistics & Supply Chain</p>
+                <p className="client-description">
+                  We revolutionized Seal Freight's logistics operations with a comprehensive SaaS solution 
+                  featuring real-time tracking, automated workflows, and advanced analytics. The platform 
+                  seamlessly integrates with their existing systems while providing actionable insights 
+                  for operational excellence.
+                </p>
+                <div className="client-results">
+                  <div className="result">
+                    <span className="result-value">+45%</span>
+                    <span className="result-label">Operational Efficiency</span>
+                  </div>
+                  <div className="result">
+                    <span className="result-value">-30%</span>
+                    <span className="result-label">Operating Costs</span>
+                  </div>
+                  <div className="result">
+                    <span className="result-value">99.8%</span>
+                    <span className="result-label">System Uptime</span>
+                  </div>
+                </div>
+              </div>
+              <div className="carousel-container">
+                <div className="carousel">
+                  <div className="carousel-slides" style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
+                    {sealFreightImages.map((image, index) => (
+                      <div
+                        key={index}
+                        className="carousel-slide"
+                      >
+                        <img 
+                          src={`${process.env.PUBLIC_URL}/images/${image}`} 
+                          alt={`Seal Freight Solution ${index + 1}`}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <button className="carousel-btn carousel-btn-prev" onClick={goToPrev}>
+                    ‹
+                  </button>
+                  <button className="carousel-btn carousel-btn-next" onClick={goToNext}>
+                    ›
+                  </button>
+                  
+                  <div className="carousel-dots">
+                    {sealFreightImages.map((_, index) => (
+                      <button
+                        key={index}
+                        className={`carousel-dot ${index === currentImageIndex ? 'active' : ''}`}
+                        onClick={() => goToSlide(index)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Action Plan */}
+        <section className="action-plan">
+          <div className="container">
+            <div className="action-content">
+              <div className="action-text">
+                <h2>Your Action Plan</h2>
+                <ol>
+                  <li>
+                    <strong>Define Your Vision</strong>
+                    <p>We work with you to understand your business goals and define clear objectives for your digital transformation.</p>
+                  </li>
+                  <li>
+                    <strong>Analyze Requirements</strong>
+                    <p>Comprehensive analysis of your business processes, technical requirements, and user needs.</p>
+                  </li>
+                  <li>
+                    <strong>Develop Solutions</strong>
+                    <p>Agile development of tailored software solutions that address your specific challenges.</p>
+                  </li>
+                  <li>
+                    <strong>Launch & Optimize</strong>
+                    <p>Seamless deployment followed by continuous optimization and support services.</p>
+                  </li>
+                </ol>
+              </div>
+              <div className="action-image">
+                <img src={`${process.env.PUBLIC_URL}/images/5.png`} alt="Action Plan" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Contact Section */}
         <section id="contact" className="contact">
           <div className="container">
             <h2>Start Your Digital Transformation</h2>
@@ -281,6 +582,19 @@ const SaaSUNOLanding = () => {
                 <p style={{ margin: '5px 0 0', fontSize: '14px' }}>
                   Form submissions are simulated locally. Deploy to Vercel for database integration.
                 </p>
+              </div>
+            )}
+            
+            {submitSuccess && (
+              <div className="success-message" style={{
+                background: '#d4edda',
+                color: '#155724',
+                padding: '12px 20px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                border: '1px solid #c3e6cb'
+              }}>
+                ✅ Thank you! Your request has been submitted successfully.
               </div>
             )}
             
@@ -407,6 +721,7 @@ const SaaSUNOLanding = () => {
                 <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Solutions</a>
                 <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
                 <a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a>
+                <a href="/admin" style={{color: '#667eea'}}>Admin</a>
               </div>
             </div>
             <div className="footer-bottom">
@@ -424,4 +739,16 @@ const SaaSUNOLanding = () => {
   );
 };
 
-export default SaaSUNOLanding;
+// Main App Component with Routing
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/" element={<SaaSUNOLandingPage />} />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
