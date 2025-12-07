@@ -260,7 +260,7 @@ const SaaSUNOLanding = () => {
             
             <div className="differentiators-grid">
               <div className="differentiator-card">
-                <div className="differentiator-icon">⚡</div>
+                <div className="differentiator-icon"></div>
                 <h3>End-to-End Research & Talent Orchestration</h3>
                 <p>
                   Unlike fragmented systems, our unified platform seamlessly integrates Research Management, 
@@ -280,7 +280,7 @@ const SaaSUNOLanding = () => {
               </div>
 
               <div className="differentiator-card">
-                <div className="differentiator-icon">🚀</div>
+                <div className="differentiator-icon"></div>
                 <h3>Comprehensive Startup & Investor Ecosystem</h3>
                 <p>
                   We provide a complete ecosystem connecting startups, investors, and accelerators through 
@@ -300,7 +300,7 @@ const SaaSUNOLanding = () => {
               </div>
 
               <div className="differentiator-card">
-                <div className="differentiator-icon">🎯</div>
+                <div className="differentiator-icon"></div>
                 <h3>Dynamic Learning & Community Platform</h3>
                 <p>
                   Our platform creates thriving ecosystems by combining Learning Management, Community Engagement, 
