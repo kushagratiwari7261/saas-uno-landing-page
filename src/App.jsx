@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 
-const SaaSUNOLanding = () => {
+// Import Admin Dashboard Component
+import AdminDashboard from './components/AdminDashboard';
+
+// Main Landing Page Component
+const SaaSUNOLandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,7 +18,7 @@ const SaaSUNOLanding = () => {
     message: ''
   });
   const [submitting, setSubmitting] = useState(false);
-  // Removed submitStatus since it's not being used
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const sealFreightImages = [
     'seal1.png',
@@ -87,39 +92,46 @@ const SaaSUNOLanding = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+    if (submitSuccess) setSubmitSuccess(false);
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
+  e.preventDefault();
+  setSubmitting(true);
+  
+  try {
+    // This works on Vercel - /api/requests points to api/requests.js
+    const apiUrl = '/api/requests';
     
-    try {
-      // Use relative path for Vercel
-      const apiUrl = '/api/requests';
-      
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formData),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (response.ok) {
-        alert('Thank you for your inquiry! We will contact you soon.');
-        setFormData({ name: '', email: '', company: '', message: '' });
-      } else {
-        alert(`Error: ${data.message || 'Failed to submit request'}`);
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      alert('Network error. Please try again.');
-    } finally {
-      setSubmitting(false);
+    if (response.ok) {
+      alert('Thank you for your inquiry! We will contact you soon.');
+      setFormData({ name: '', email: '', company: '', message: '' });
+    } else {
+      alert(`Error: ${data.message || 'Failed to submit request'}`);
     }
-  };
+  } catch (error) {
+    console.error('Submission error:', error);
+    
+    // Check if we're in development
+    if (window.location.hostname === 'localhost') {
+      alert('⚠️ Running in local development. API routes only work on Vercel deployment.\n\nTo test locally, run a backend server.');
+    } else {
+      alert('Network error. Please try again.');
+    }
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const goToSlide = (index) => {
     setCurrentImageIndex(index);
@@ -185,6 +197,9 @@ const SaaSUNOLanding = () => {
               <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
               <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
+              <a href="/admin" className="admin-link" style={{marginLeft: '20px', color: '#667eea', border: '1px solid #667eea', padding: '8px 16px', borderRadius: '4px'}}>
+                Admin
+              </a>
             </div>
             <div className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <span></span>
@@ -481,6 +496,19 @@ const SaaSUNOLanding = () => {
             <h2>Start Your Digital Transformation</h2>
             <p className="contact-subtitle">Contact us for a comprehensive consultation and project assessment</p>
             
+            {submitSuccess && (
+              <div className="success-message" style={{
+                background: '#d4edda',
+                color: '#155724',
+                padding: '12px 20px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                border: '1px solid #c3e6cb'
+              }}>
+                ✅ Thank you! Your request has been submitted successfully.
+              </div>
+            )}
+            
             <div className="contact-content">
               <div className="contact-info">
                 <h3>Get In Touch</h3>
@@ -544,9 +572,42 @@ const SaaSUNOLanding = () => {
                     disabled={submitting}
                   ></textarea>
                 </div>
-                <button type="submit" className="submit-btn" disabled={submitting}>
-                  {submitting ? 'Submitting...' : 'Send Request'}
+                <button 
+                  type="submit" 
+                  className="submit-btn" 
+                  disabled={submitting}
+                  style={{ position: 'relative' }}
+                >
+                  {submitting ? (
+                    <>
+                      <span style={{
+                        display: 'inline-block',
+                        width: '16px',
+                        height: '16px',
+                        border: '2px solid #fff',
+                        borderTop: '2px solid transparent',
+                        borderRadius: '50%',
+                        animation: 'spin 1s linear infinite',
+                        marginRight: '8px'
+                      }}></span>
+                      Submitting...
+                    </>
+                  ) : 'Send Request'}
                 </button>
+                <style>{`
+                  @keyframes spin {
+                    0% { transform: rotate(0deg); }
+                    100% { transform: rotate(360deg); }
+                  }
+                `}</style>
+                <p style={{
+                  fontSize: '12px',
+                  color: '#666',
+                  marginTop: '10px',
+                  textAlign: 'center'
+                }}>
+                  Your information is secure and will only be used to contact you about your inquiry.
+                </p>
               </form>
             </div>
           </div>
@@ -566,6 +627,7 @@ const SaaSUNOLanding = () => {
                 <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Solutions</a>
                 <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
                 <a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a>
+                <a href="/admin" style={{color: '#667eea'}}>Admin</a>
               </div>
             </div>
             <div className="footer-bottom">
@@ -578,4 +640,16 @@ const SaaSUNOLanding = () => {
   );
 };
 
-export default SaaSUNOLanding;
+// Main App Component with Routing
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/" element={<SaaSUNOLandingPage />} />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
