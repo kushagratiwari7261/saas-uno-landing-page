@@ -1,119 +1,132 @@
-import { MongoClient } from 'mongodb';
+// api/requests.js
+import mongoose from 'mongoose';
 
+// Use environment variable with fallback
 const MONGODB_URI = process.env.MONGODB_URI;
 
-let cachedClient = null;
-let cachedDb = null;
-
-async function connectToDatabase() {
-  if (cachedDb && cachedClient) {
-    return { client: cachedClient, db: cachedDb };
-  }
-
-  const client = await MongoClient.connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    maxPoolSize: 10,
-  });
-  
-  const db = client.db();
-  
-  cachedClient = client;
-  cachedDb = db;
-  
-  return { client, db };
+// Simple test to see if URI exists
+console.log('MONGODB_URI exists:', !!MONGODB_URI);
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not defined in environment variables');
 }
 
-export default async function handler(req, res) {
-  // Enable CORS
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+let isConnected = false;
 
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  // Only accept POST requests
-  if (req.method !== 'POST') {
-    return res.status(405).json({ 
-      success: false, 
-      message: 'Method not allowed' 
-    });
+async function connectDB() {
+  if (isConnected) {
+    console.log('✅ Using existing MongoDB connection');
+    return;
   }
 
   try {
-    const { name, email, company, message } = req.body;
-
-    // Validate input
-    if (!name || !email || !company || !message) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'All fields are required' 
-      });
-    }
-
-    if (name.length < 2) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Name must be at least 2 characters' 
-      });
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ 
-        success: false, 
-        message: 'Invalid email format' 
-      });
-    }
-
-    // Connect to database
-    const { db } = await connectToDatabase();
-    const collection = db.collection('contact_requests');
-
-    // Check for duplicate submissions (last 24 hours)
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const existing = await collection.findOne({
-      email: email.trim().toLowerCase(),
-      submittedAt: { $gte: twentyFourHoursAgo }
+    await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     });
+    isConnected = true;
+    console.log('✅ MongoDB connected successfully');
+  } catch (error) {
+    console.error('❌ MongoDB connection error:', error.message);
+    throw error;
+  }
+}
 
-    if (existing) {
-      return res.status(429).json({ 
-        success: false,
-        message: 'Please wait 24 hours before submitting another request' 
+// Define Schema
+const contactSchema = new mongoose.Schema({
+  name: String,
+  email: String,
+  company: String,
+  message: String,
+  submittedAt: { type: Date, default: Date.now },
+  status: { type: String, default: 'pending' }
+});
+
+// Use existing model or create new one
+const Contact = mongoose.models.Contact || mongoose.model('Contact', contactSchema);
+
+export default async function handler(req, res) {
+  // Log the request
+  console.log(`📨 ${req.method} request to /api/requests`);
+  
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    console.log('🛫 Handling OPTIONS preflight request');
+    return res.status(200).end();
+  }
+  
+  // Only accept POST
+  if (req.method !== 'POST') {
+    console.log('❌ Method not allowed:', req.method);
+    return res.status(405).json({ 
+      success: false, 
+      message: 'Method not allowed. Use POST.' 
+    });
+  }
+  
+  try {
+    console.log('📊 Request body:', JSON.stringify(req.body));
+    
+    const { name, email, company, message } = req.body;
+    
+    // Basic validation
+    if (!name || !email || !company || !message) {
+      console.log('❌ Missing fields');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'All fields are required: name, email, company, message' 
       });
     }
-
-    // Insert the data
-    const result = await collection.insertOne({
+    
+    // Connect to database
+    console.log('🔗 Connecting to MongoDB...');
+    await connectDB();
+    
+    // Create and save contact
+    const contact = new Contact({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       company: company.trim(),
-      message: message.trim(),
-      submittedAt: new Date(),
-      status: 'pending',
-      ip: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
-      userAgent: req.headers['user-agent']
+      message: message.trim()
     });
-
-    return res.status(201).json({ 
-      success: true, 
-      message: 'Request submitted successfully!',
-      requestId: result.insertedId
+    
+    console.log('💾 Saving contact to database...');
+    const savedContact = await contact.save();
+    console.log('✅ Contact saved with ID:', savedContact._id);
+    
+    return res.status(201).json({
+      success: true,
+      message: 'Thank you! Your request has been submitted successfully.',
+      requestId: savedContact._id,
+      timestamp: new Date().toISOString()
     });
-
+    
   } catch (error) {
-    console.error('Database error:', error);
-    return res.status(500).json({ 
-      success: false, 
-      message: 'Internal server error. Please try again later.' 
+    console.error('💥 Server error:', error);
+    
+    // Specific error handling
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error: ' + error.message
+      });
+    }
+    
+    if (error.name === 'MongoNetworkError' || error.name === 'MongoServerSelectionError') {
+      return res.status(503).json({
+        success: false,
+        message: 'Database connection failed. Please try again later.'
+      });
+    }
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }
