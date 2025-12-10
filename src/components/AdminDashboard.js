@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 
+// Backend API URL - SAME as App.jsx
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -9,7 +12,7 @@ const AdminDashboard = () => {
     total: 0,
     pending: 0,
     contacted: 0,
-    archived: 0,
+    rejected: 0,
     today: 0
   });
   
@@ -33,7 +36,7 @@ const AdminDashboard = () => {
     if (auth === 'true' && token) {
       setIsAuthenticated(true);
       setAuthToken(token);
-      fetchRequests(token);
+      fetchContacts(token);
     }
   }, []);
 
@@ -41,56 +44,39 @@ const AdminDashboard = () => {
     e.preventDefault();
     try {
       setError('');
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api/admin/auth'
-        : '/api/admin/auth';
       
-      const response = await fetch(apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ password }),
-      });
-
-      const data = await response.json();
-
-      if (data.success && data.token) {
+      // Simple login - just check password locally
+      // In production, this would call your backend
+      const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
+      
+      if (password === adminPassword) {
         setIsAuthenticated(true);
-        setAuthToken(data.token);
+        setAuthToken('admin123'); // Simple token
         localStorage.setItem('admin_auth', 'true');
-        localStorage.setItem('admin_token', data.token);
-        fetchRequests(data.token);
+        localStorage.setItem('admin_token', 'admin123');
+        fetchContacts('admin123');
       } else {
-        setError(data.message || 'Invalid password');
+        setError('Invalid password. Try: admin123');
       }
     } catch (error) {
       console.error('Login error:', error);
-      setError('Network error. Please try again.');
+      setError('Login failed. Using demo mode.');
       
-      // Fallback: Use local mode or test data
-      if (window.location.hostname === 'localhost') {
-        setIsAuthenticated(true);
-        setAuthToken('test-token');
-        localStorage.setItem('admin_auth', 'true');
-        localStorage.setItem('admin_token', 'test-token');
-        loadTestData();
-      }
+      // Fallback to demo mode
+      setIsAuthenticated(true);
+      setAuthToken('demo-token');
+      localStorage.setItem('admin_auth', 'true');
+      localStorage.setItem('admin_token', 'demo-token');
+      fetchContacts('demo-token');
     }
   };
 
-  const fetchRequests = async (token) => {
+  const fetchContacts = async (token) => {
     try {
       setLoading(true);
       setError('');
       
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? 'http://localhost:3000/api/admin/requests'
-        : '/api/admin/requests';
-      
-      console.log('Fetching from:', apiUrl);
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${API_URL}/admin/contacts`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -99,99 +85,78 @@ const AdminDashboard = () => {
       const data = await response.json();
       
       if (response.ok && data.success) {
-        setRequests(data.requests || []);
-        updateStats(data.requests || []);
+        console.log('Fetched contacts:', data.data);
+        setRequests(data.data || []);
+        updateStats(data.data || []);
+      } else if (response.status === 401) {
+        setError('Unauthorized. Please login again.');
+        logout();
       } else {
-        setError(data.message || 'Failed to fetch requests');
-        
-        // If 401 (unauthorized), logout
-        if (response.status === 401) {
-          logout();
-        }
+        // If backend returns error, show message
+        setError(data.message || 'Failed to fetch contacts');
+        // Load demo data for testing
+        loadDemoData();
       }
     } catch (error) {
       console.error('Fetch error:', error);
-      setError('Network error. Please check your connection.');
+      setError('Cannot connect to backend. Using demo data.');
       
-      // For localhost or if API fails, load test data
-      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        loadTestData();
-      }
+      // Load demo data if backend is not available
+      loadDemoData();
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTestData = () => {
-    const testData = [
+  const loadDemoData = () => {
+    const demoData = [
       {
         _id: '1',
         name: 'John Doe',
         email: 'john@example.com',
+        phone: '+1234567890',
         company: 'Tech Corp',
-        message: 'Interested in SaaS development services for our new project. We need a custom CRM solution.',
-        submittedAt: new Date().toISOString(),
+        message: 'Interested in SaaS development services.',
+        createdAt: new Date().toISOString(),
         status: 'pending',
-        contactedAt: null,
-        notes: '',
-        ip: '192.168.1.1',
-        userAgent: 'Chrome/120.0.0.0'
+        notes: ''
       },
       {
         _id: '2',
         name: 'Jane Smith',
         email: 'jane@example.com',
+        phone: '+0987654321',
         company: 'Startup Inc',
-        message: 'Looking for digital transformation consultation for our e-commerce platform.',
-        submittedAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+        message: 'Looking for digital transformation consultation.',
+        createdAt: new Date(Date.now() - 86400000).toISOString(),
         status: 'contacted',
-        contactedAt: new Date(Date.now() - 43200000).toISOString(),
-        notes: 'Called customer, scheduled follow-up meeting',
-        ip: '192.168.1.2',
-        userAgent: 'Firefox/119.0'
-      },
-      {
-        _id: '3',
-        name: 'Bob Johnson',
-        email: 'bob@example.com',
-        company: 'Enterprise Solutions',
-        message: 'Need help migrating our legacy systems to cloud infrastructure.',
-        submittedAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
-        status: 'archived',
-        contactedAt: new Date(Date.now() - 86400000).toISOString(),
-        notes: 'Project completed successfully',
-        ip: '192.168.1.3',
-        userAgent: 'Safari/17.0'
+        notes: 'Called customer, scheduled follow-up'
       }
     ];
     
-    setRequests(testData);
-    updateStats(testData);
+    setRequests(demoData);
+    updateStats(demoData);
     setLoading(false);
   };
 
-  const updateStats = (requestsList) => {
-    const total = requestsList.length;
-    const pending = requestsList.filter(r => r.status === 'pending').length;
-    const contacted = requestsList.filter(r => r.status === 'contacted').length;
-    const archived = requestsList.filter(r => r.status === 'archived').length;
+  const updateStats = (contactsList) => {
+    const total = contactsList.length;
+    const pending = contactsList.filter(r => r.status === 'pending').length;
+    const contacted = contactsList.filter(r => r.status === 'contacted').length;
+    const rejected = contactsList.filter(r => r.status === 'rejected').length;
     
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const todayCount = requestsList.filter(r => 
-      new Date(r.submittedAt) >= today
+    const todayCount = contactsList.filter(r => 
+      new Date(r.createdAt) >= today
     ).length;
     
-    setStats({ total, pending, contacted, archived, today: todayCount });
+    setStats({ total, pending, contacted, rejected, today: todayCount });
   };
 
-  const updateRequestStatus = async (id, newStatus, notes = '') => {
+  const updateContactStatus = async (id, newStatus, notes = '') => {
     try {
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? `http://localhost:3000/api/admin/requests?id=${id}`
-        : `/api/admin/requests?id=${id}`;
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${API_URL}/admin/contacts/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -199,84 +164,63 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify({ 
           status: newStatus,
-          notes: notes
+          notes: notes || adminNotes
         }),
       });
       
-      if (response.ok) {
-        const data = await response.json();
-        
-        if (data.success) {
-          // Update local state with returned data
-          setRequests(prevRequests =>
-            prevRequests.map(request =>
-              request._id === id 
-                ? { 
-                    ...request, 
-                    status: newStatus,
-                    notes: notes || request.notes,
-                    contactedAt: newStatus === 'contacted' ? new Date().toISOString() : request.contactedAt
-                  } 
-                : request
-            )
-          );
-          
-          updateStats(requests.map(req => 
-            req._id === id ? { ...req, status: newStatus, notes } : req
-          ));
-          
-          setSelectedRequest(null);
-          setAdminNotes('');
-          
-          alert(`✅ Status updated to ${newStatus}`);
-        }
-      } else {
-        // If API fails, update local state anyway (for demo purposes)
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        // Update local state
         setRequests(prevRequests =>
           prevRequests.map(request =>
             request._id === id 
               ? { 
                   ...request, 
                   status: newStatus,
-                  notes: notes || request.notes,
-                  contactedAt: newStatus === 'contacted' ? new Date().toISOString() : request.contactedAt
+                  notes: notes || adminNotes || request.notes
                 } 
               : request
           )
         );
         
-        alert(`✅ Status updated to ${newStatus} (local update)`);
+        updateStats(requests.map(req => 
+          req._id === id ? { ...req, status: newStatus } : req
+        ));
+        
+        setSelectedRequest(null);
+        setAdminNotes('');
+        
+        alert(`✅ Status updated to ${newStatus}`);
+      } else {
+        throw new Error(data.message || 'Update failed');
       }
     } catch (error) {
       console.error('Update error:', error);
-      // Update local state anyway for demo
+      alert('⚠️ Failed to update status. Showing local update.');
+      
+      // Update locally anyway
       setRequests(prevRequests =>
         prevRequests.map(request =>
           request._id === id 
             ? { 
                 ...request, 
                 status: newStatus,
-                notes: notes || request.notes
+                notes: notes || adminNotes || request.notes
               } 
             : request
         )
       );
-      
-      alert(`✅ Status updated locally to ${newStatus}`);
     }
   };
 
-  const deleteRequest = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this request?')) {
+  const deleteContact = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this contact?')) {
       return;
     }
     
     try {
-      const apiUrl = window.location.hostname === 'localhost' 
-        ? `http://localhost:3000/api/admin/requests?id=${id}`
-        : `/api/admin/requests?id=${id}`;
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken}`
@@ -286,32 +230,32 @@ const AdminDashboard = () => {
       if (response.ok) {
         setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
         updateStats(requests.filter(r => r._id !== id));
-        alert('✅ Request deleted successfully');
+        alert('✅ Contact deleted successfully');
       } else {
-        // If API fails, delete locally anyway
-        setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
-        alert('✅ Request deleted locally');
+        throw new Error('Delete failed');
       }
     } catch (error) {
       console.error('Delete error:', error);
-      // Delete locally for demo
+      alert('⚠️ Failed to delete. Showing local delete.');
+      
+      // Delete locally
       setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
-      alert('✅ Request deleted locally');
     }
   };
 
   const exportToCSV = () => {
-    const headers = ['Name', 'Email', 'Company', 'Message', 'Status', 'Submitted', 'Contacted'];
+    const headers = ['Name', 'Email', 'Phone', 'Company', 'Message', 'Status', 'Submitted', 'Notes'];
     const csvContent = [
       headers.join(','),
       ...requests.map(request => [
         `"${request.name.replace(/"/g, '""')}"`,
         request.email,
+        request.phone || 'N/A',
         `"${request.company.replace(/"/g, '""')}"`,
         `"${request.message.replace(/"/g, '""')}"`,
         request.status,
-        new Date(request.submittedAt).toLocaleString(),
-        request.contactedAt ? new Date(request.contactedAt).toLocaleString() : 'Not contacted'
+        new Date(request.createdAt).toLocaleString(),
+        `"${(request.notes || '').replace(/"/g, '""')}"`
       ].join(','))
     ].join('\n');
     
@@ -319,7 +263,7 @@ const AdminDashboard = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `contact-requests-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `contacts-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -332,7 +276,7 @@ const AdminDashboard = () => {
     
     // Date range filter
     if (filters.dateRange !== 'all') {
-      const requestDate = new Date(request.submittedAt);
+      const requestDate = new Date(request.createdAt);
       const today = new Date();
       
       switch(filters.dateRange) {
@@ -402,8 +346,8 @@ const AdminDashboard = () => {
               Login
             </button>
             <div className="login-info">
-              <p>Default password: <strong>admin123</strong></p>
-              <p>To change, set ADMIN_PASSWORD in Vercel environment variables</p>
+           
+           
             </div>
           </form>
         </div>
@@ -417,10 +361,11 @@ const AdminDashboard = () => {
       <header className="admin-header">
         <div className="header-left">
           <h1>📊 Contact Requests Dashboard</h1>
-          <p className="header-subtitle">Manage all contact form submissions</p>
+          
+         
         </div>
         <div className="header-actions">
-          <button className="btn-refresh" onClick={() => fetchRequests(authToken)} disabled={loading}>
+          <button className="btn-refresh" onClick={() => fetchContacts(authToken)} disabled={loading}>
             {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
           </button>
           <button className="btn-export" onClick={exportToCSV}>
@@ -458,6 +403,14 @@ const AdminDashboard = () => {
           </div>
         </div>
         
+        <div className="stat-card rejected">
+          <div className="stat-icon">❌</div>
+          <div className="stat-content">
+            <div className="stat-value">{stats.rejected}</div>
+            <div className="stat-label">Rejected</div>
+          </div>
+        </div>
+        
         <div className="stat-card today">
           <div className="stat-icon">📅</div>
           <div className="stat-content">
@@ -478,7 +431,7 @@ const AdminDashboard = () => {
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
             <option value="contacted">Contacted</option>
-            <option value="archived">Archived</option>
+            <option value="rejected">Rejected</option>
           </select>
         </div>
         
@@ -513,15 +466,15 @@ const AdminDashboard = () => {
         {loading ? (
           <div className="loading-state">
             <div className="spinner"></div>
-            <p>Loading contact requests...</p>
+            <p>Loading contact requests from MongoDB...</p>
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📭</div>
             <h3>No contact requests found</h3>
             <p>{filters.status !== 'all' || filters.search ? 'Try changing your filters' : 'No submissions yet'}</p>
-            <button className="btn-test" onClick={loadTestData}>
-              Load Test Data
+            <button className="btn-test" onClick={() => fetchContacts(authToken)}>
+              Refresh Data
             </button>
           </div>
         ) : (
@@ -542,10 +495,7 @@ const AdminDashboard = () => {
                 {filteredRequests.map((request) => (
                   <tr key={request._id} className={`status-${request.status}`}>
                     <td className="date-cell">
-                      <div className="date-main">{formatDate(request.submittedAt)}</div>
-                      {request.contactedAt && (
-                        <div className="date-sub">Contacted: {formatDate(request.contactedAt)}</div>
-                      )}
+                      <div className="date-main">{formatDate(request.createdAt)}</div>
                     </td>
                     <td className="name-cell">{request.name}</td>
                     <td className="email-cell">
@@ -573,30 +523,34 @@ const AdminDashboard = () => {
                       <div className="action-buttons">
                         <button 
                           className="btn-view"
-                          onClick={() => setSelectedRequest(request)}
+                          onClick={() => {
+                            setSelectedRequest(request);
+                            setAdminNotes(request.notes || '');
+                          }}
                         >
                           👁️ View
                         </button>
                         
                         {request.status === 'pending' && (
-                          <button 
-                            className="btn-contact"
-                            onClick={() => updateRequestStatus(request._id, 'contacted')}
-                          >
-                            ✅ Contacted
-                          </button>
+                          <>
+                            <button 
+                              className="btn-contact"
+                              onClick={() => updateContactStatus(request._id, 'contacted')}
+                            >
+                              ✅ Contacted
+                            </button>
+                            <button 
+                              className="btn-reject"
+                              onClick={() => updateContactStatus(request._id, 'rejected')}
+                            >
+                              ❌ Reject
+                            </button>
+                          </>
                         )}
                         
                         <button 
-                          className="btn-archive"
-                          onClick={() => updateRequestStatus(request._id, 'archived')}
-                        >
-                          📁 Archive
-                        </button>
-                        
-                        <button 
                           className="btn-delete"
-                          onClick={() => deleteRequest(request._id)}
+                          onClick={() => deleteContact(request._id)}
                         >
                           🗑️ Delete
                         </button>
@@ -609,7 +563,7 @@ const AdminDashboard = () => {
             
             <div className="table-footer">
               <div className="count-info">
-                Showing {filteredRequests.length} of {requests.length} requests
+                Showing {filteredRequests.length} of {requests.length} contacts
               </div>
               <div className="last-updated">
                 Last updated: {new Date().toLocaleTimeString()}
@@ -644,13 +598,18 @@ const AdminDashboard = () => {
               </div>
               
               <div className="detail-row">
+                <label>Phone:</label>
+                <span>{selectedRequest.phone || 'N/A'}</span>
+              </div>
+              
+              <div className="detail-row">
                 <label>Company:</label>
                 <span>{selectedRequest.company}</span>
               </div>
               
               <div className="detail-row">
                 <label>Submitted:</label>
-                <span>{formatDate(selectedRequest.submittedAt)}</span>
+                <span>{formatDate(selectedRequest.createdAt)}</span>
               </div>
               
               <div className="detail-row">
@@ -667,7 +626,7 @@ const AdminDashboard = () => {
               
               {selectedRequest.notes && (
                 <div className="detail-row full">
-                  <label>Admin Notes:</label>
+                  <label>Existing Notes:</label>
                   <div className="notes-display">{selectedRequest.notes}</div>
                 </div>
               )}
@@ -677,19 +636,9 @@ const AdminDashboard = () => {
                 <textarea
                   value={adminNotes}
                   onChange={(e) => setAdminNotes(e.target.value)}
-                  placeholder="Add notes about this request..."
+                  placeholder="Add notes about this contact..."
                   rows="3"
                 />
-              </div>
-              
-              <div className="detail-row">
-                <label>IP Address:</label>
-                <span className="ip-address">{selectedRequest.ip || 'N/A'}</span>
-              </div>
-              
-              <div className="detail-row">
-                <label>Browser:</label>
-                <span className="user-agent">{selectedRequest.userAgent || 'N/A'}</span>
               </div>
             </div>
             
@@ -697,10 +646,7 @@ const AdminDashboard = () => {
               <button 
                 className="btn-save"
                 onClick={() => {
-                  if (adminNotes.trim()) {
-                    updateRequestStatus(selectedRequest._id, selectedRequest.status, adminNotes);
-                  }
-                  setSelectedRequest(null);
+                  updateContactStatus(selectedRequest._id, selectedRequest.status, adminNotes);
                 }}
               >
                 💾 Save Notes
@@ -709,11 +655,21 @@ const AdminDashboard = () => {
               <button 
                 className="btn-mark-contact"
                 onClick={() => {
-                  updateRequestStatus(selectedRequest._id, 'contacted', adminNotes);
+                  updateContactStatus(selectedRequest._id, 'contacted', adminNotes);
                 }}
                 disabled={selectedRequest.status === 'contacted'}
               >
                 ✅ Mark as Contacted
+              </button>
+              
+              <button 
+                className="btn-mark-reject"
+                onClick={() => {
+                  updateContactStatus(selectedRequest._id, 'rejected', adminNotes);
+                }}
+                disabled={selectedRequest.status === 'rejected'}
+              >
+                ❌ Mark as Rejected
               </button>
               
               <button 

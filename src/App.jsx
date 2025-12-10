@@ -5,6 +5,8 @@ import './App.css';
 // Import Admin Dashboard Component
 import AdminDashboard from './components/AdminDashboard';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 // Main Landing Page Component
 const SaaSUNOLandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -105,89 +107,71 @@ const SaaSUNOLandingPage = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setSubmitSuccess(false);
+  e.preventDefault();
+  setSubmitting(true);
+  setSubmitSuccess(false);
+  
+  try {
+    // Use backend API for both localhost and production
+    const response = await fetch(`${API_URL}/contacts`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        company: formData.company.trim(),
+        message: formData.message.trim()
+      }),
+    });
+
+    // Handle response
+    const contentType = response.headers.get('content-type');
     
-    try {
-      // Handle localhost vs production differently
-      if (isLocalhost) {
-        // Local development - show mock success
-        console.log('Form data submitted locally:', formData);
-        
-        // Simulate API call delay
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        alert('✅ Form submitted successfully!\n\n📝 This is a local test. On Vercel, this would save to database.\n\nName: ' + formData.name + '\nEmail: ' + formData.email + '\nCompany: ' + formData.company);
-        
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      
+      if (response.ok) {
+        alert('✅ ' + (data.message || 'Thank you! Your request has been submitted.'));
         setFormData({ name: '', email: '', company: '', message: '' });
         setSubmitSuccess(true);
-        
       } else {
-        // Production on Vercel - call real API
-        const apiUrl = '/api/requests';
-        
-        console.log('Submitting to production API:', apiUrl);
-        
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            name: formData.name.trim(),
-            email: formData.email.trim(),
-            company: formData.company.trim(),
-            message: formData.message.trim()
-          }),
-        });
-
-        // Handle response
-        const contentType = response.headers.get('content-type');
-        
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          
-          if (response.ok) {
-            alert('✅ ' + (data.message || 'Thank you! Your request has been submitted.'));
-            setFormData({ name: '', email: '', company: '', message: '' });
-            setSubmitSuccess(true);
-          } else {
-            alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
-          }
-        } else {
-          // Handle non-JSON response
-          const text = await response.text();
-          console.error('Non-JSON response:', text);
-          
-          if (response.status === 404) {
-            alert('⚠️ API endpoint not found. Please check deployment.');
-          } else {
-            alert('⚠️ Server error. Please try again later.');
-          }
-        }
+        alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
       }
+    } else {
+      // Handle non-JSON response
+      const text = await response.text();
+      console.error('Non-JSON response:', text);
       
-    } catch (error) {
-      console.error('Submission error:', error);
-      
-      if (isLocalhost) {
-        alert('⚠️ Local test error: ' + error.message);
+      if (response.status === 404) {
+        if (isLocalhost) {
+          alert('⚠️ Backend API not found. Make sure your backend is running on http://localhost:5000\n\nRun: cd saasuno-backend && npm run dev');
+        } else {
+          alert('⚠️ API endpoint not found. Please check deployment.');
+        }
       } else {
-        if (error.message.includes('Failed to fetch')) {
-          alert('🌐 Network error. Please check your internet connection.');
-        } else if (error.message.includes('Unexpected token')) {
-          alert('⚠️ API endpoint not configured properly.\n\nCheck that api/requests.js exists in your project.');
-        } else {
-          alert('⚠️ Error: ' + error.message);
-        }
+        alert('⚠️ Server error. Please try again later.');
       }
-      
-    } finally {
-      setSubmitting(false);
     }
-  };
-
+    
+  } catch (error) {
+    console.error('Submission error:', error);
+    
+    if (isLocalhost) {
+      if (error.message.includes('Failed to fetch')) {
+        alert('🌐 Cannot connect to backend at http://localhost:5000\n\nMake sure:\n1. Backend server is running\n2. Run: cd saasuno-backend && npm run dev\n3. Check console for errors');
+      } else {
+        alert('⚠️ Error: ' + error.message);
+      }
+    } else {
+      alert('⚠️ Network error. Please try again.');
+    }
+    
+  } finally {
+    setSubmitting(false);
+  }
+};
   const goToSlide = (index) => {
     setCurrentImageIndex(index);
   };
@@ -252,16 +236,8 @@ const SaaSUNOLandingPage = () => {
               <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
               <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
-              <a href="/admin" className="admin-link" style={{
-                marginLeft: '20px', 
-                color: '#667eea', 
-                border: '1px solid #667eea', 
-                padding: '8px 16px', 
-                borderRadius: '4px',
-                fontSize: '14px'
-              }}>
-                Admin
-              </a>
+             
+             
               {isLocalhost && (
                 <span style={{ 
                   color: '#ff6b6b', 
