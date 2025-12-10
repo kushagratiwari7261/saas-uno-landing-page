@@ -5,7 +5,21 @@ import './App.css';
 // Import Admin Dashboard Component
 import AdminDashboard from './components/AdminDashboard';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Better API URL detection
+const getApiUrl = () => {
+  // If environment variable is set, use it
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // If running on Vercel production
+  if (window.location.hostname.includes('vercel.app')) {
+    return 'https://saasuno-backend.onrender.com/api';
+  }
+  // Default to localhost for development
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 // Main Landing Page Component
 const SaaSUNOLandingPage = () => {
@@ -22,6 +36,7 @@ const SaaSUNOLandingPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
+  const [apiStatus, setApiStatus] = useState('checking');
 
   const sealFreightImages = [
     'seal1.png',
@@ -31,13 +46,36 @@ const SaaSUNOLandingPage = () => {
     'seal5.png'
   ];
 
-  // Check if running on localhost
+  // Check if running on localhost and test API
   useEffect(() => {
     const isLocal = window.location.hostname === 'localhost' || 
                     window.location.hostname === '127.0.0.1';
     setIsLocalhost(isLocal);
     console.log('Running on localhost:', isLocal);
+    console.log('API URL:', API_URL);
+    
+    // Test API connection
+    checkApiHealth();
   }, []);
+
+  // Test backend API health
+  const checkApiHealth = async () => {
+    try {
+      console.log('Testing API connection to:', API_URL);
+      const response = await fetch(`${API_URL.replace('/api', '')}/health`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API Health:', data);
+        setApiStatus(data.mongodb === 'Connected' ? 'connected' : 'demo');
+      } else {
+        console.log('API Health check failed');
+        setApiStatus('disconnected');
+      }
+    } catch (error) {
+      console.log('API Health check error:', error.message);
+      setApiStatus('disconnected');
+    }
+  };
 
   // Fast loading simulation
   useEffect(() => {
@@ -107,71 +145,74 @@ const SaaSUNOLandingPage = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setSubmitting(true);
-  setSubmitSuccess(false);
-  
-  try {
-    // Use backend API for both localhost and production
-    const response = await fetch(`${API_URL}/contacts`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: formData.name.trim(),
-        email: formData.email.trim(),
-        company: formData.company.trim(),
-        message: formData.message.trim()
-      }),
-    });
-
-    // Handle response
-    const contentType = response.headers.get('content-type');
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitSuccess(false);
     
-    if (contentType && contentType.includes('application/json')) {
-      const data = await response.json();
+    try {
+      console.log('Submitting to:', `${API_URL}/contacts`);
+      console.log('Form data:', formData);
       
-      if (response.ok) {
-        alert('✅ ' + (data.message || 'Thank you! Your request has been submitted.'));
-        setFormData({ name: '', email: '', company: '', message: '' });
-        setSubmitSuccess(true);
-      } else {
-        alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
-      }
-    } else {
-      // Handle non-JSON response
-      const text = await response.text();
-      console.error('Non-JSON response:', text);
+      const response = await fetch(`${API_URL}/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          company: formData.company.trim(),
+          message: formData.message.trim()
+        }),
+      });
+
+      console.log('Response status:', response.status);
       
-      if (response.status === 404) {
-        if (isLocalhost) {
-          alert('⚠️ Backend API not found. Make sure your backend is running on http://localhost:5000\n\nRun: cd saasuno-backend && npm run dev');
+      // Handle response
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        console.log('Response data:', data);
+        
+        if (response.ok) {
+          const message = data.message || 'Thank you! Your request has been submitted.';
+          alert('✅ ' + message);
+          setFormData({ name: '', email: '', company: '', message: '' });
+          setSubmitSuccess(true);
         } else {
-          alert('⚠️ API endpoint not found. Please check deployment.');
+          alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
         }
       } else {
-        alert('⚠️ Server error. Please try again later.');
+        // Handle non-JSON response
+        const text = await response.text();
+        console.error('Non-JSON response:', text);
+        
+        if (response.status === 404) {
+          alert('⚠️ API endpoint not found. The backend server might be down.');
+        } else {
+          alert('⚠️ Server error. Please try again later.');
+        }
       }
-    }
-    
-  } catch (error) {
-    console.error('Submission error:', error);
-    
-    if (isLocalhost) {
-      if (error.message.includes('Failed to fetch')) {
-        alert('🌐 Cannot connect to backend at http://localhost:5000\n\nMake sure:\n1. Backend server is running\n2. Run: cd saasuno-backend && npm run dev\n3. Check console for errors');
+      
+    } catch (error) {
+      console.error('Submission error:', error);
+      
+      if (isLocalhost) {
+        if (error.message.includes('Failed to fetch')) {
+          alert(`🌐 Cannot connect to backend at ${API_URL}\n\nMake sure:\n1. Backend server is running\n2. Check console for errors`);
+        } else {
+          alert('⚠️ Error: ' + error.message);
+        }
       } else {
-        alert('⚠️ Error: ' + error.message);
+        alert('⚠️ Network error. Please check your connection and try again.');
       }
-    } else {
-      alert('⚠️ Network error. Please try again.');
+      
+    } finally {
+      setSubmitting(false);
     }
-    
-  } finally {
-    setSubmitting(false);
-  }
-};
+  };
+
   const goToSlide = (index) => {
     setCurrentImageIndex(index);
   };
@@ -187,6 +228,17 @@ const SaaSUNOLandingPage = () => {
       current === 0 ? sealFreightImages.length - 1 : current - 1
     );
   };
+
+  const getApiStatusMessage = () => {
+    switch(apiStatus) {
+      case 'connected': return { text: '✅ Connected to database', color: '#10b981' };
+      case 'demo': return { text: '⚠️ Demo mode - MongoDB not connected', color: '#f59e0b' };
+      case 'disconnected': return { text: '❌ Backend not reachable', color: '#ef4444' };
+      default: return { text: '⏳ Checking connection...', color: '#6b7280' };
+    }
+  };
+
+  const apiStatusMsg = getApiStatusMessage();
 
   return (
     <div className="App">
@@ -237,7 +289,6 @@ const SaaSUNOLandingPage = () => {
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
               <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
              
-             
               {isLocalhost && (
                 <span style={{ 
                   color: '#ff6b6b', 
@@ -250,6 +301,17 @@ const SaaSUNOLandingPage = () => {
                   Local Mode
                 </span>
               )}
+              <span style={{ 
+                color: apiStatusMsg.color, 
+                fontSize: '12px',
+                marginLeft: '10px',
+                padding: '2px 6px',
+                background: '#f3f4f6',
+                borderRadius: '4px',
+                border: `1px solid ${apiStatusMsg.color}`
+              }}>
+                {apiStatusMsg.text}
+              </span>
             </div>
             <div className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <span></span>
@@ -546,20 +608,27 @@ const SaaSUNOLandingPage = () => {
             <h2>Start Your Digital Transformation</h2>
             <p className="contact-subtitle">Contact us for a comprehensive consultation and project assessment</p>
             
-            {isLocalhost && (
-              <div style={{
-                background: '#fff3cd',
-                border: '1px solid #ffeaa7',
-                borderRadius: '8px',
-                padding: '15px',
-                marginBottom: '20px'
-              }}>
-                <strong>🛠️ Local Development Mode</strong>
-                <p style={{ margin: '5px 0 0', fontSize: '14px' }}>
-                  Form submissions are simulated locally. Deploy to Vercel for database integration.
-                </p>
-              </div>
-            )}
+            <div style={{
+              background: apiStatus === 'connected' ? '#d1fae5' : 
+                         apiStatus === 'demo' ? '#fef3c7' : '#fee2e2',
+              border: `1px solid ${apiStatus === 'connected' ? '#10b981' : 
+                       apiStatus === 'demo' ? '#f59e0b' : '#ef4444'}`,
+              borderRadius: '8px',
+              padding: '15px',
+              marginBottom: '20px'
+            }}>
+              <strong>📡 System Status:</strong>
+              <p style={{ margin: '5px 0 0', fontSize: '14px' }}>
+                {apiStatus === 'connected' ? 
+                  '✅ Connected to MongoDB - Form data will be saved to database' :
+                 apiStatus === 'demo' ? 
+                  '⚠️ Demo Mode - MongoDB not connected. Form will work but data won\'t persist' :
+                  '❌ Backend not reachable. Please check your connection.'}
+              </p>
+              <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#666' }}>
+                Backend URL: {API_URL}
+              </p>
+            </div>
             
             {submitSuccess && (
               <div className="success-message" style={{
@@ -601,7 +670,7 @@ const SaaSUNOLandingPage = () => {
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting}
+                    disabled={submitting || apiStatus === 'disconnected'}
                   />
                 </div>
                 <div className="form-group">
@@ -612,7 +681,7 @@ const SaaSUNOLandingPage = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting}
+                    disabled={submitting || apiStatus === 'disconnected'}
                   />
                 </div>
                 <div className="form-group">
@@ -623,7 +692,7 @@ const SaaSUNOLandingPage = () => {
                     value={formData.company}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting}
+                    disabled={submitting || apiStatus === 'disconnected'}
                   />
                 </div>
                 <div className="form-group">
@@ -634,13 +703,13 @@ const SaaSUNOLandingPage = () => {
                     onChange={handleInputChange}
                     rows="5"
                     required
-                    disabled={submitting}
+                    disabled={submitting || apiStatus === 'disconnected'}
                   ></textarea>
                 </div>
                 <button 
                   type="submit" 
                   className="submit-btn" 
-                  disabled={submitting}
+                  disabled={submitting || apiStatus === 'disconnected'}
                   style={{ position: 'relative' }}
                 >
                   {submitting ? (
@@ -655,10 +724,10 @@ const SaaSUNOLandingPage = () => {
                         animation: 'spin 1s linear infinite',
                         marginRight: '8px'
                       }}></span>
-                      {isLocalhost ? 'Testing...' : 'Submitting...'}
+                      Submitting...
                     </>
                   ) : (
-                    isLocalhost ? 'Test Submit (Local)' : 'Send Request'
+                    apiStatus === 'disconnected' ? 'Backend Unavailable' : 'Send Request'
                   )}
                 </button>
                 <style>{`
@@ -673,10 +742,11 @@ const SaaSUNOLandingPage = () => {
                   marginTop: '10px',
                   textAlign: 'center'
                 }}>
-                  {isLocalhost ? 
-                    '🔧 Local test mode - form data will not be saved' : 
-                    'Your information is secure and will be saved to our database'
-                  }
+                  {apiStatus === 'connected' ? 
+                    '✅ Your information will be securely saved to our database' :
+                   apiStatus === 'demo' ? 
+                    '⚠️ Demo mode - Data will be processed but not saved to database' :
+                    '❌ Cannot connect to backend server'}
                 </p>
               </form>
             </div>
@@ -702,11 +772,9 @@ const SaaSUNOLandingPage = () => {
             </div>
             <div className="footer-bottom">
               <p>&copy; 2024 SaasUNO Technologies. All rights reserved.</p>
-              {isLocalhost && (
-                <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
-                  Running in local development mode
-                </p>
-              )}
+              <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
+                Backend Status: {apiStatusMsg.text} | API: {API_URL}
+              </p>
             </div>
           </div>
         </footer>

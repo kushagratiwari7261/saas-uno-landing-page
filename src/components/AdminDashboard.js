@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 
-// Backend API URL - SAME as App.jsx
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Better API URL detection - SAME as App.jsx
+const getApiUrl = () => {
+  // If environment variable is set, use it
+  if (process.env.REACT_APP_API_URL) {
+    return process.env.REACT_APP_API_URL;
+  }
+  // If running on Vercel production
+  if (window.location.hostname.includes('vercel.app')) {
+    return 'https://saasuno-backend.onrender.com/api';
+  }
+  // Default to localhost for development
+  return 'http://localhost:5000/api';
+};
+
+const API_URL = getApiUrl();
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -27,6 +40,12 @@ const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authToken, setAuthToken] = useState('');
+  const [apiStatus, setApiStatus] = useState('checking');
+
+  // Check API health on load
+  useEffect(() => {
+    checkApiHealth();
+  }, []);
 
   // Check if already authenticated
   useEffect(() => {
@@ -39,6 +58,25 @@ const AdminDashboard = () => {
       fetchContacts(token);
     }
   }, []);
+
+  // Test backend API health
+  const checkApiHealth = async () => {
+    try {
+      console.log('Testing API connection to:', API_URL);
+      const response = await fetch(`${API_URL.replace('/api', '')}/health`);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('API Health:', data);
+        setApiStatus(data.mongodb === 'Connected' ? 'connected' : 'demo');
+      } else {
+        console.log('API Health check failed');
+        setApiStatus('disconnected');
+      }
+    } catch (error) {
+      console.log('API Health check error:', error.message);
+      setApiStatus('disconnected');
+    }
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -76,6 +114,8 @@ const AdminDashboard = () => {
       setLoading(true);
       setError('');
       
+      console.log('Fetching from:', `${API_URL}/admin/contacts`);
+      
       const response = await fetch(`${API_URL}/admin/contacts`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -88,6 +128,7 @@ const AdminDashboard = () => {
         console.log('Fetched contacts:', data.data);
         setRequests(data.data || []);
         updateStats(data.data || []);
+        setError('');
       } else if (response.status === 401) {
         setError('Unauthorized. Please login again.');
         logout();
@@ -156,6 +197,8 @@ const AdminDashboard = () => {
 
   const updateContactStatus = async (id, newStatus, notes = '') => {
     try {
+      console.log('Updating contact:', id, 'to', newStatus);
+      
       const response = await fetch(`${API_URL}/admin/contacts/${id}/status`, {
         method: 'PATCH',
         headers: {
@@ -324,12 +367,38 @@ const AdminDashboard = () => {
     setAuthToken('');
   };
 
+  const getApiStatusMessage = () => {
+    switch(apiStatus) {
+      case 'connected': return { text: '✅ Connected to MongoDB', color: '#10b981' };
+      case 'demo': return { text: '⚠️ Demo Mode - MongoDB not connected', color: '#f59e0b' };
+      case 'disconnected': return { text: '❌ Backend not reachable', color: '#ef4444' };
+      default: return { text: '⏳ Checking connection...', color: '#6b7280' };
+    }
+  };
+
+  const apiStatusMsg = getApiStatusMessage();
+
   if (!isAuthenticated) {
     return (
       <div className="admin-login">
         <div className="login-container">
           <h2>🔐 Admin Dashboard Login</h2>
           <p className="login-subtitle">Enter admin password to access contact requests</p>
+          <div style={{
+            background: apiStatusMsg.color === '#10b981' ? '#d1fae5' : 
+                       apiStatusMsg.color === '#f59e0b' ? '#fef3c7' : '#fee2e2',
+            border: `1px solid ${apiStatusMsg.color}`,
+            borderRadius: '8px',
+            padding: '10px',
+            marginBottom: '15px'
+          }}>
+            <p style={{ margin: 0, fontSize: '14px' }}>
+              <strong>Backend Status:</strong> {apiStatusMsg.text}
+            </p>
+            <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#666' }}>
+              API: {API_URL}
+            </p>
+          </div>
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <input
@@ -346,8 +415,14 @@ const AdminDashboard = () => {
               Login
             </button>
             <div className="login-info">
-           
-           
+              
+              <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
+                {apiStatus === 'connected' ? 
+                  '✅ Real data will be loaded from MongoDB' :
+                 apiStatus === 'demo' ? 
+                  '⚠️ Demo data will be shown (MongoDB not connected)' :
+                  '❌ Backend unavailable - Using demo data'}
+              </p>
             </div>
           </form>
         </div>
@@ -361,11 +436,32 @@ const AdminDashboard = () => {
       <header className="admin-header">
         <div className="header-left">
           <h1>📊 Contact Requests Dashboard</h1>
-          
-         
+          <p className="header-subtitle">Manage all contact form submissions</p>
+          <div style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            background: apiStatusMsg.color === '#10b981' ? '#d1fae5' : 
+                       apiStatusMsg.color === '#f59e0b' ? '#fef3c7' : '#fee2e2',
+            border: `1px solid ${apiStatusMsg.color}`,
+            borderRadius: '4px',
+            padding: '4px 8px',
+            fontSize: '12px',
+            marginTop: '5px'
+          }}>
+            <span style={{ color: apiStatusMsg.color, fontWeight: 'bold' }}>
+              {apiStatusMsg.text}
+            </span>
+          </div>
         </div>
         <div className="header-actions">
-          <button className="btn-refresh" onClick={() => fetchContacts(authToken)} disabled={loading}>
+          <button 
+            className="btn-refresh" 
+            onClick={() => {
+              checkApiHealth();
+              fetchContacts(authToken);
+            }} 
+            disabled={loading}
+          >
             {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
           </button>
           <button className="btn-export" onClick={exportToCSV}>
@@ -564,6 +660,9 @@ const AdminDashboard = () => {
             <div className="table-footer">
               <div className="count-info">
                 Showing {filteredRequests.length} of {requests.length} contacts
+                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#666' }}>
+                  ({apiStatus === 'connected' ? 'Real data from MongoDB' : 'Demo data'})
+                </span>
               </div>
               <div className="last-updated">
                 Last updated: {new Date().toLocaleTimeString()}
