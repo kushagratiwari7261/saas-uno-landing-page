@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 
-// API URL Configuration - SAME as App.jsx
-const isLocalhost = window.location.hostname === 'localhost' || 
-                    window.location.hostname === '127.0.0.1';
-
-const API_URL = isLocalhost 
-  ? 'http://localhost:5000/api'  // Local development
-  : process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com/api';  // Production
+// API URL Configuration - Production optimized
+const API_URL = process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com/api';
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -67,36 +62,29 @@ const AdminDashboard = () => {
       setLoading(true);
       setError('');
       
-      console.log('🔍 Fetching contacts from:', `${API_URL}/admin/contacts`);
-      
       const response = await fetch(`${API_URL}/admin/contacts`, {
         headers: {
           'Authorization': `Bearer ${authToken || 'admin123'}`
         }
       });
       
-      console.log('📥 Response status:', response.status);
-      
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Unauthorized. Please login again.');
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        throw new Error(`Failed to load contacts: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('📊 Received data:', data);
       
       // Handle different response formats
       if (data.success && data.data) {
         setRequests(data.data);
         updateStats(data.data);
       } else if (Array.isArray(data)) {
-        // If backend returns array directly
         setRequests(data);
         updateStats(data);
       } else if (data.contacts) {
-        // If backend returns {contacts: [...]}
         setRequests(data.contacts);
         updateStats(data.contacts);
       } else {
@@ -104,8 +92,8 @@ const AdminDashboard = () => {
       }
       
     } catch (error) {
-      console.error('❌ Fetch error:', error);
-      setError(`Failed to load contacts: ${error.message}`);
+      console.error('Fetch error:', error);
+      setError(error.message);
       
       // Load demo data for testing
       loadDemoData();
@@ -161,8 +149,6 @@ const AdminDashboard = () => {
 
   const updateContactStatus = async (id, newStatus, notes = '') => {
     try {
-      console.log(`🔄 Updating contact ${id} to ${newStatus}`);
-      
       const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
         method: 'PATCH',
         headers: {
@@ -175,11 +161,7 @@ const AdminDashboard = () => {
         }),
       });
       
-      console.log('📥 Update response status:', response.status);
-      
       if (response.ok) {
-        const data = await response.json();
-        
         // Update local state
         setRequests(prevRequests =>
           prevRequests.map(request =>
@@ -209,11 +191,11 @@ const AdminDashboard = () => {
         
         alert(`✅ Status updated to ${newStatus}`);
       } else {
-        throw new Error(`Update failed with status: ${response.status}`);
+        throw new Error('Update failed');
       }
     } catch (error) {
-      console.error('❌ Update error:', error);
-      alert('⚠️ Failed to update status. Check console for details.');
+      console.error('Update error:', error);
+      alert('⚠️ Failed to update status.');
     }
   };
 
@@ -238,8 +220,8 @@ const AdminDashboard = () => {
         throw new Error('Delete failed');
       }
     } catch (error) {
-      console.error('❌ Delete error:', error);
-      alert('⚠️ Failed to delete contact. Check console for details.');
+      console.error('Delete error:', error);
+      alert('⚠️ Failed to delete contact.');
     }
   };
 
@@ -328,23 +310,8 @@ const AdminDashboard = () => {
     return (
       <div className="admin-login">
         <div className="login-container">
-          <h2>🔐 Admin Dashboard Login</h2>
+          <h2>🔐 Admin Dashboard</h2>
           <p className="login-subtitle">Enter admin password to access contact requests</p>
-          
-          <div style={{
-            background: '#f0f9ff',
-            border: '1px solid #0ea5e9',
-            borderRadius: '8px',
-            padding: '10px',
-            marginBottom: '15px'
-          }}>
-            <p style={{ margin: 0, fontSize: '14px' }}>
-              <strong>Backend URL:</strong> {API_URL}
-            </p>
-            <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#666' }}>
-              {isLocalhost ? '🔧 Local Development Mode' : '🚀 Production Mode'}
-            </p>
-          </div>
           
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -352,7 +319,7 @@ const AdminDashboard = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password (admin123)"
+                placeholder="Enter admin password"
                 required
                 autoFocus
               />
@@ -361,11 +328,6 @@ const AdminDashboard = () => {
             <button type="submit" className="login-button">
               Login
             </button>
-            <div className="login-info">
-              <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-                Default password: <strong>admin123</strong>
-              </p>
-            </div>
           </form>
         </div>
       </div>
@@ -386,7 +348,7 @@ const AdminDashboard = () => {
             onClick={fetchContacts} 
             disabled={loading}
           >
-            {loading ? '🔄 Refreshing...' : '🔄 Refresh Data'}
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
           </button>
           <button className="btn-export" onClick={exportToCSV}>
             📥 Export CSV
@@ -403,7 +365,7 @@ const AdminDashboard = () => {
           <div className="stat-icon">📋</div>
           <div className="stat-content">
             <div className="stat-value">{stats.total}</div>
-            <div className="stat-label">Total Requests</div>
+            <div className="stat-label">Total</div>
           </div>
         </div>
         
@@ -493,9 +455,6 @@ const AdminDashboard = () => {
             <div className="empty-icon">📭</div>
             <h3>No contact requests found</h3>
             <p>{filters.status !== 'all' || filters.search ? 'Try changing your filters' : 'No submissions yet'}</p>
-            <button className="btn-test" onClick={fetchContacts}>
-              Refresh Data
-            </button>
           </div>
         ) : (
           <div className="table-container">
@@ -595,7 +554,7 @@ const AdminDashboard = () => {
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>Contact Request Details</h2>
+              <h2>Contact Details</h2>
               <button className="modal-close" onClick={() => setSelectedRequest(null)}>
                 ×
               </button>
