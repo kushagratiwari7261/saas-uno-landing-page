@@ -53,7 +53,7 @@ const AdminDashboard = () => {
       localStorage.setItem('admin_token', 'SaasUno@2025');
       fetchContacts();
     } else {
-      setError('Invalid password. Try: SaasUno@2025');
+      setError('Invalid password.');
     }
   };
 
@@ -218,7 +218,7 @@ const AdminDashboard = () => {
       if (response.ok) {
         setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
         updateStats(requests.filter(r => r._id !== id));
-        alert('Contact deleted successfully');
+        alert(' Contact deleted successfully');
       } else {
         throw new Error('Delete failed');
       }
@@ -313,8 +313,8 @@ const AdminDashboard = () => {
     return (
       <div className="admin-login">
         <div className="login-container">
-        
-          
+          <h2> Pssword Dall Re</h2>
+          <p className="login-subtitle">Boll Khul ji Sim Sim✨</p>
           
           <form onSubmit={handleLogin}>
             <div className="form-group">
