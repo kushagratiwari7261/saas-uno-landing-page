@@ -411,7 +411,7 @@ const SaaSUNOLandingPage = () => {
                   <p>Advanced search capabilities with real-time cloud synchronization across all devices.</p>
                 </div>
                 <div className="feature">
-                  <h4>Q4 Analytics & Reporting</h4>
+                  <h4>Analytics & Reporting</h4>
                   <p>Comprehensive analytics dashboard with customizable reports and real-time insights.</p>
                 </div>
                 <div className="feature">
