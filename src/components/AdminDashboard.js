@@ -1,21 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
 
-// Better API URL detection - SAME as App.jsx
-const getApiUrl = () => {
-  // If environment variable is set, use it
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
-  // If running on Vercel production
-  if (window.location.hostname.includes('vercel.app')) {
-    return 'https://saasuno-backend.onrender.com/api';
-  }
-  // Default to localhost for development
-  return 'http://localhost:5000/api';
-};
+// API URL Configuration - SAME as App.jsx
+const isLocalhost = window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1';
 
-const API_URL = getApiUrl();
+const API_URL = isLocalhost 
+  ? 'http://localhost:5000/api'  // Local development
+  : process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com/api';  // Production
 
 const AdminDashboard = () => {
   const [requests, setRequests] = useState([]);
@@ -40,12 +32,6 @@ const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authToken, setAuthToken] = useState('');
-  const [apiStatus, setApiStatus] = useState('checking');
-
-  // Check API health on load
-  useEffect(() => {
-    checkApiHealth();
-  }, []);
 
   // Check if already authenticated
   useEffect(() => {
@@ -55,94 +41,73 @@ const AdminDashboard = () => {
     if (auth === 'true' && token) {
       setIsAuthenticated(true);
       setAuthToken(token);
-      fetchContacts(token);
+      fetchContacts();
     }
   }, []);
 
-  // Test backend API health
-  const checkApiHealth = async () => {
-    try {
-      console.log('Testing API connection to:', API_URL);
-      const response = await fetch(`${API_URL.replace('/api', '')}/health`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API Health:', data);
-        setApiStatus(data.mongodb === 'Connected' ? 'connected' : 'demo');
-      } else {
-        console.log('API Health check failed');
-        setApiStatus('disconnected');
-      }
-    } catch (error) {
-      console.log('API Health check error:', error.message);
-      setApiStatus('disconnected');
-    }
-  };
-
-  const handleLogin = async (e) => {
+  const handleLogin = (e) => {
     e.preventDefault();
-    try {
-      setError('');
-      
-      // Simple login - just check password locally
-      // In production, this would call your backend
-      const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
-      
-      if (password === adminPassword) {
-        setIsAuthenticated(true);
-        setAuthToken('admin123'); // Simple token
-        localStorage.setItem('admin_auth', 'true');
-        localStorage.setItem('admin_token', 'admin123');
-        fetchContacts('admin123');
-      } else {
-        setError('Invalid password. Try: admin123');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed. Using demo mode.');
-      
-      // Fallback to demo mode
+    
+    // Simple password check - matches your backend ADMIN_TOKEN
+    const adminPassword = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
+    
+    if (password === adminPassword) {
       setIsAuthenticated(true);
-      setAuthToken('demo-token');
+      setAuthToken('admin123');
       localStorage.setItem('admin_auth', 'true');
-      localStorage.setItem('admin_token', 'demo-token');
-      fetchContacts('demo-token');
+      localStorage.setItem('admin_token', 'admin123');
+      fetchContacts();
+    } else {
+      setError('Invalid password. Try: admin123');
     }
   };
 
-  const fetchContacts = async (token) => {
+  const fetchContacts = async () => {
     try {
       setLoading(true);
       setError('');
       
-      console.log('Fetching from:', `${API_URL}/admin/contacts`);
+      console.log('🔍 Fetching contacts from:', `${API_URL}/admin/contacts`);
       
       const response = await fetch(`${API_URL}/admin/contacts`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authToken || 'admin123'}`
         }
       });
       
-      const data = await response.json();
+      console.log('📥 Response status:', response.status);
       
-      if (response.ok && data.success) {
-        console.log('Fetched contacts:', data.data);
-        setRequests(data.data || []);
-        updateStats(data.data || []);
-        setError('');
-      } else if (response.status === 401) {
-        setError('Unauthorized. Please login again.');
-        logout();
-      } else {
-        // If backend returns error, show message
-        setError(data.message || 'Failed to fetch contacts');
-        // Load demo data for testing
-        loadDemoData();
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Unauthorized. Please login again.');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-    } catch (error) {
-      console.error('Fetch error:', error);
-      setError('Cannot connect to backend. Using demo data.');
       
-      // Load demo data if backend is not available
+      const data = await response.json();
+      console.log('📊 Received data:', data);
+      
+      // Handle different response formats
+      if (data.success && data.data) {
+        setRequests(data.data);
+        updateStats(data.data);
+      } else if (Array.isArray(data)) {
+        // If backend returns array directly
+        setRequests(data);
+        updateStats(data);
+      } else if (data.contacts) {
+        // If backend returns {contacts: [...]}
+        setRequests(data.contacts);
+        updateStats(data.contacts);
+      } else {
+        throw new Error('Invalid data format from server');
+      }
+      
+    } catch (error) {
+      console.error('❌ Fetch error:', error);
+      setError(`Failed to load contacts: ${error.message}`);
+      
+      // Load demo data for testing
       loadDemoData();
     } finally {
       setLoading(false);
@@ -177,7 +142,6 @@ const AdminDashboard = () => {
     
     setRequests(demoData);
     updateStats(demoData);
-    setLoading(false);
   };
 
   const updateStats = (contactsList) => {
@@ -197,13 +161,13 @@ const AdminDashboard = () => {
 
   const updateContactStatus = async (id, newStatus, notes = '') => {
     try {
-      console.log('Updating contact:', id, 'to', newStatus);
+      console.log(`🔄 Updating contact ${id} to ${newStatus}`);
       
-      const response = await fetch(`${API_URL}/admin/contacts/${id}/status`, {
+      const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken || 'admin123'}`
         },
         body: JSON.stringify({ 
           status: newStatus,
@@ -211,9 +175,11 @@ const AdminDashboard = () => {
         }),
       });
       
-      const data = await response.json();
+      console.log('📥 Update response status:', response.status);
       
-      if (response.ok && data.success) {
+      if (response.ok) {
+        const data = await response.json();
+        
         // Update local state
         setRequests(prevRequests =>
           prevRequests.map(request =>
@@ -227,33 +193,27 @@ const AdminDashboard = () => {
           )
         );
         
-        updateStats(requests.map(req => 
-          req._id === id ? { ...req, status: newStatus } : req
-        ));
+        // Update stats
+        setStats(prevStats => ({
+          ...prevStats,
+          pending: newStatus === 'pending' ? prevStats.pending + 1 : 
+                  (prevStats.pending > 0 ? prevStats.pending - 1 : 0),
+          contacted: newStatus === 'contacted' ? prevStats.contacted + 1 : 
+                    (prevStats.contacted > 0 ? prevStats.contacted - 1 : 0),
+          rejected: newStatus === 'rejected' ? prevStats.rejected + 1 : 
+                   (prevStats.rejected > 0 ? prevStats.rejected - 1 : 0)
+        }));
         
         setSelectedRequest(null);
         setAdminNotes('');
         
         alert(`✅ Status updated to ${newStatus}`);
       } else {
-        throw new Error(data.message || 'Update failed');
+        throw new Error(`Update failed with status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Update error:', error);
-      alert('⚠️ Failed to update status. Showing local update.');
-      
-      // Update locally anyway
-      setRequests(prevRequests =>
-        prevRequests.map(request =>
-          request._id === id 
-            ? { 
-                ...request, 
-                status: newStatus,
-                notes: notes || adminNotes || request.notes
-              } 
-            : request
-        )
-      );
+      console.error('❌ Update error:', error);
+      alert('⚠️ Failed to update status. Check console for details.');
     }
   };
 
@@ -266,7 +226,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${authToken}`
+          'Authorization': `Bearer ${authToken || 'admin123'}`
         }
       });
       
@@ -278,11 +238,8 @@ const AdminDashboard = () => {
         throw new Error('Delete failed');
       }
     } catch (error) {
-      console.error('Delete error:', error);
-      alert('⚠️ Failed to delete. Showing local delete.');
-      
-      // Delete locally
-      setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
+      console.error('❌ Delete error:', error);
+      alert('⚠️ Failed to delete contact. Check console for details.');
     }
   };
 
@@ -367,45 +324,35 @@ const AdminDashboard = () => {
     setAuthToken('');
   };
 
-  const getApiStatusMessage = () => {
-    switch(apiStatus) {
-      case 'connected': return { text: '✅ Connected to MongoDB', color: '#10b981' };
-      case 'demo': return { text: '⚠️ Demo Mode - MongoDB not connected', color: '#f59e0b' };
-      case 'disconnected': return { text: '❌ Backend not reachable', color: '#ef4444' };
-      default: return { text: '⏳ Checking connection...', color: '#6b7280' };
-    }
-  };
-
-  const apiStatusMsg = getApiStatusMessage();
-
   if (!isAuthenticated) {
     return (
       <div className="admin-login">
         <div className="login-container">
           <h2>🔐 Admin Dashboard Login</h2>
           <p className="login-subtitle">Enter admin password to access contact requests</p>
+          
           <div style={{
-            background: apiStatusMsg.color === '#10b981' ? '#d1fae5' : 
-                       apiStatusMsg.color === '#f59e0b' ? '#fef3c7' : '#fee2e2',
-            border: `1px solid ${apiStatusMsg.color}`,
+            background: '#f0f9ff',
+            border: '1px solid #0ea5e9',
             borderRadius: '8px',
             padding: '10px',
             marginBottom: '15px'
           }}>
             <p style={{ margin: 0, fontSize: '14px' }}>
-              <strong>Backend Status:</strong> {apiStatusMsg.text}
+              <strong>Backend URL:</strong> {API_URL}
             </p>
             <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#666' }}>
-              API: {API_URL}
+              {isLocalhost ? '🔧 Local Development Mode' : '🚀 Production Mode'}
             </p>
           </div>
+          
           <form onSubmit={handleLogin}>
             <div className="form-group">
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                placeholder="Enter admin password (admin123)"
                 required
                 autoFocus
               />
@@ -415,13 +362,8 @@ const AdminDashboard = () => {
               Login
             </button>
             <div className="login-info">
-              
               <p style={{ fontSize: '12px', color: '#666', marginTop: '10px' }}>
-                {apiStatus === 'connected' ? 
-                  '✅ Real data will be loaded from MongoDB' :
-                 apiStatus === 'demo' ? 
-                  '⚠️ Demo data will be shown (MongoDB not connected)' :
-                  '❌ Backend unavailable - Using demo data'}
+                Default password: <strong>admin123</strong>
               </p>
             </div>
           </form>
@@ -437,32 +379,14 @@ const AdminDashboard = () => {
         <div className="header-left">
           <h1>📊 Contact Requests Dashboard</h1>
           <p className="header-subtitle">Manage all contact form submissions</p>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            background: apiStatusMsg.color === '#10b981' ? '#d1fae5' : 
-                       apiStatusMsg.color === '#f59e0b' ? '#fef3c7' : '#fee2e2',
-            border: `1px solid ${apiStatusMsg.color}`,
-            borderRadius: '4px',
-            padding: '4px 8px',
-            fontSize: '12px',
-            marginTop: '5px'
-          }}>
-            <span style={{ color: apiStatusMsg.color, fontWeight: 'bold' }}>
-              {apiStatusMsg.text}
-            </span>
-          </div>
         </div>
         <div className="header-actions">
           <button 
             className="btn-refresh" 
-            onClick={() => {
-              checkApiHealth();
-              fetchContacts(authToken);
-            }} 
+            onClick={fetchContacts} 
             disabled={loading}
           >
-            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
+            {loading ? '🔄 Refreshing...' : '🔄 Refresh Data'}
           </button>
           <button className="btn-export" onClick={exportToCSV}>
             📥 Export CSV
@@ -562,14 +486,14 @@ const AdminDashboard = () => {
         {loading ? (
           <div className="loading-state">
             <div className="spinner"></div>
-            <p>Loading contact requests from MongoDB...</p>
+            <p>Loading contact requests...</p>
           </div>
         ) : filteredRequests.length === 0 ? (
           <div className="empty-state">
             <div className="empty-icon">📭</div>
             <h3>No contact requests found</h3>
             <p>{filters.status !== 'all' || filters.search ? 'Try changing your filters' : 'No submissions yet'}</p>
-            <button className="btn-test" onClick={() => fetchContacts(authToken)}>
+            <button className="btn-test" onClick={fetchContacts}>
               Refresh Data
             </button>
           </div>
@@ -660,12 +584,6 @@ const AdminDashboard = () => {
             <div className="table-footer">
               <div className="count-info">
                 Showing {filteredRequests.length} of {requests.length} contacts
-                <span style={{ marginLeft: '10px', fontSize: '12px', color: '#666' }}>
-                  ({apiStatus === 'connected' ? 'Real data from MongoDB' : 'Demo data'})
-                </span>
-              </div>
-              <div className="last-updated">
-                Last updated: {new Date().toLocaleTimeString()}
               </div>
             </div>
           </div>

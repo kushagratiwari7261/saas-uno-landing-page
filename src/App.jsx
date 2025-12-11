@@ -5,21 +5,11 @@ import './App.css';
 // Import Admin Dashboard Component
 import AdminDashboard from './components/AdminDashboard';
 
-// Better API URL detection
-const getApiUrl = () => {
-  // If environment variable is set, use it
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
-  // If running on Vercel production
-  if (window.location.hostname.includes('vercel.app')) {
-    return 'https://saasuno-backend.onrender.com/api';
-  }
-  // Default to localhost for development
-  return 'http://localhost:5000/api';
-};
+// API URL Configuration - Production optimized
+const API_URL = process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com/api';
 
-const API_URL = getApiUrl();
+console.log('🌐 API URL:', API_URL);
+console.log('🚀 Environment:', process.env.NODE_ENV);
 
 // Main Landing Page Component
 const SaaSUNOLandingPage = () => {
@@ -35,8 +25,7 @@ const SaaSUNOLandingPage = () => {
   });
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [isLocalhost, setIsLocalhost] = useState(false);
-  const [apiStatus, setApiStatus] = useState('checking');
+  const [formMessage, setFormMessage] = useState({ type: '', text: '' });
 
   const sealFreightImages = [
     'seal1.png',
@@ -46,41 +35,10 @@ const SaaSUNOLandingPage = () => {
     'seal5.png'
   ];
 
-  // Check if running on localhost and test API
-  useEffect(() => {
-    const isLocal = window.location.hostname === 'localhost' || 
-                    window.location.hostname === '127.0.0.1';
-    setIsLocalhost(isLocal);
-    console.log('Running on localhost:', isLocal);
-    console.log('API URL:', API_URL);
-    
-    // Test API connection
-    checkApiHealth();
-  }, []);
-
-  // Test backend API health
-  const checkApiHealth = async () => {
-    try {
-      console.log('Testing API connection to:', API_URL);
-      const response = await fetch(`${API_URL.replace('/api', '')}/health`);
-      if (response.ok) {
-        const data = await response.json();
-        console.log('API Health:', data);
-        setApiStatus(data.mongodb === 'Connected' ? 'connected' : 'demo');
-      } else {
-        console.log('API Health check failed');
-        setApiStatus('disconnected');
-      }
-    } catch (error) {
-      console.log('API Health check error:', error.message);
-      setApiStatus('disconnected');
-    }
-  };
-
   // Fast loading simulation
   useEffect(() => {
     let progress = 0;
-    const duration = 1800;
+    const duration = 1200; // Faster for production
     const intervalTime = 20;
     const totalSteps = duration / intervalTime;
     const increment = 100 / totalSteps;
@@ -95,7 +53,7 @@ const SaaSUNOLandingPage = () => {
           setIsLoading(false);
           document.body.classList.remove('loading');
           document.body.classList.add('loaded');
-        }, 100);
+        }, 50);
       }
       setLoadingProgress(progress);
     }, intervalTime);
@@ -108,7 +66,7 @@ const SaaSUNOLandingPage = () => {
     };
   }, []);
 
-  // Carousel and other existing useEffect
+  // Carousel
   useEffect(() => {
     if (!isLoading) {
       const interval = setInterval(() => {
@@ -142,70 +100,99 @@ const SaaSUNOLandingPage = () => {
       [e.target.name]: e.target.value
     });
     if (submitSuccess) setSubmitSuccess(false);
+    if (formMessage.text) setFormMessage({ type: '', text: '' });
+  };
+
+  const showMessage = (type, text) => {
+    setFormMessage({ type, text });
+    setTimeout(() => {
+      setFormMessage({ type: '', text: '' });
+    }, 5000);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     setSubmitSuccess(false);
+    setFormMessage({ type: '', text: '' });
     
+    // Validation
+    if (!formData.name.trim() || !formData.email.trim() || !formData.company.trim()) {
+      showMessage('error', 'Please fill in all required fields');
+      setSubmitting(false);
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      showMessage('error', 'Please enter a valid email address');
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      console.log('Submitting to:', `${API_URL}/contacts`);
-      console.log('Form data:', formData);
+      console.log('📤 Submitting form to:', `${API_URL}/contacts`);
       
       const response = await fetch(`${API_URL}/contacts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           name: formData.name.trim(),
           email: formData.email.trim(),
           company: formData.company.trim(),
-          message: formData.message.trim()
+          message: formData.message.trim(),
+          source: 'landing-page',
+          timestamp: new Date().toISOString()
         }),
       });
 
-      console.log('Response status:', response.status);
+      console.log('📥 Response status:', response.status);
       
-      // Handle response
-      const contentType = response.headers.get('content-type');
-      
-      if (contentType && contentType.includes('application/json')) {
-        const data = await response.json();
-        console.log('Response data:', data);
+      let data;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        showMessage('error', 'Server error. Please try again later.');
+        setSubmitting(false);
+        return;
+      }
+
+      if (response.ok) {
+        showMessage('success', data.message || 'Thank you! Your request has been submitted successfully.');
+        setFormData({ name: '', email: '', company: '', message: '' });
+        setSubmitSuccess(true);
         
-        if (response.ok) {
-          const message = data.message || 'Thank you! Your request has been submitted.';
-          alert('✅ ' + message);
-          setFormData({ name: '', email: '', company: '', message: '' });
-          setSubmitSuccess(true);
-        } else {
-          alert('❌ ' + (data.message || 'Submission failed. Please try again.'));
+        // Send notification (optional)
+        try {
+          await fetch(`${API_URL}/notify`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: 'new_contact',
+              data: { ...formData, submittedAt: new Date().toISOString() }
+            })
+          });
+        } catch (notifyError) {
+          console.log('Notification failed:', notifyError);
         }
       } else {
-        // Handle non-JSON response
-        const text = await response.text();
-        console.error('Non-JSON response:', text);
-        
-        if (response.status === 404) {
-          alert('⚠️ API endpoint not found. The backend server might be down.');
-        } else {
-          alert('⚠️ Server error. Please try again later.');
-        }
+        showMessage('error', data.error || data.message || 'Submission failed. Please try again.');
       }
       
     } catch (error) {
       console.error('Submission error:', error);
       
-      if (isLocalhost) {
-        if (error.message.includes('Failed to fetch')) {
-          alert(`🌐 Cannot connect to backend at ${API_URL}\n\nMake sure:\n1. Backend server is running\n2. Check console for errors`);
-        } else {
-          alert('⚠️ Error: ' + error.message);
-        }
+      if (error.message.includes('Failed to fetch')) {
+        showMessage('error', 'Network error. Please check your connection and try again.');
+      } else if (error.message.includes('CORS')) {
+        showMessage('error', 'Connection error. Please contact support.');
       } else {
-        alert('⚠️ Network error. Please check your connection and try again.');
+        showMessage('error', 'An error occurred. Please try again.');
       }
       
     } finally {
@@ -228,17 +215,6 @@ const SaaSUNOLandingPage = () => {
       current === 0 ? sealFreightImages.length - 1 : current - 1
     );
   };
-
-  const getApiStatusMessage = () => {
-    switch(apiStatus) {
-      case 'connected': return { text: '✅ Connected to database', color: '#10b981' };
-      case 'demo': return { text: '⚠️ Demo mode - MongoDB not connected', color: '#f59e0b' };
-      case 'disconnected': return { text: '❌ Backend not reachable', color: '#ef4444' };
-      default: return { text: '⏳ Checking connection...', color: '#6b7280' };
-    }
-  };
-
-  const apiStatusMsg = getApiStatusMessage();
 
   return (
     <div className="App">
@@ -288,30 +264,7 @@ const SaaSUNOLandingPage = () => {
               <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
               <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
               <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
-             
-              {isLocalhost && (
-                <span style={{ 
-                  color: '#ff6b6b', 
-                  fontSize: '12px',
-                  marginLeft: '10px',
-                  padding: '2px 6px',
-                  background: '#fff3cd',
-                  borderRadius: '4px'
-                }}>
-                  Local Mode
-                </span>
-              )}
-              <span style={{ 
-                color: apiStatusMsg.color, 
-                fontSize: '12px',
-                marginLeft: '10px',
-                padding: '2px 6px',
-                background: '#f3f4f6',
-                borderRadius: '4px',
-                border: `1px solid ${apiStatusMsg.color}`
-              }}>
-                {apiStatusMsg.text}
-              </span>
+              <a href="/admin" className="admin-link">Admin</a>
             </div>
             <div className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
               <span></span>
@@ -335,7 +288,7 @@ const SaaSUNOLandingPage = () => {
               </button>
             </div>
             <div className="hero-image">
-              <img src={`${process.env.PUBLIC_URL}/images/7.png`} alt="SaaS Platform" />
+              <img src={`${process.env.PUBLIC_URL}/images/7.png`} alt="SaaS Platform" loading="lazy" />
             </div>
           </div>
         </section>
@@ -387,12 +340,11 @@ const SaaSUNOLandingPage = () => {
             
             <div className="differentiators-grid">
               <div className="differentiator-card">
-                <div className="differentiator-icon"></div>
+                <div className="differentiator-icon">🔬</div>
                 <h3>End-to-End Research & Talent Orchestration</h3>
                 <p>
                   Unlike fragmented systems, our unified platform seamlessly integrates Research Management, 
-                  Fellowship Programs, Grant Lifecycle Management, and Mentor Networks. This holistic approach 
-                  reduces administrative overhead by 60% while increasing research output and talent retention.
+                  Fellowship Programs, Grant Lifecycle Management, and Mentor Networks.
                 </p>
                 <div className="differentiator-stats">
                   <div className="stat">
@@ -407,12 +359,11 @@ const SaaSUNOLandingPage = () => {
               </div>
 
               <div className="differentiator-card">
-                <div className="differentiator-icon"></div>
+                <div className="differentiator-icon">🚀</div>
                 <h3>Comprehensive Startup & Investor Ecosystem</h3>
                 <p>
                   We provide a complete ecosystem connecting startups, investors, and accelerators through 
-                  Portfolio Management, Fund Administration, Real-time Analytics, and Investor Relations modules. 
-                  This integrated approach increases funding success rates and investor confidence significantly.
+                  Portfolio Management, Fund Administration, Real-time Analytics.
                 </p>
                 <div className="differentiator-stats">
                   <div className="stat">
@@ -427,12 +378,11 @@ const SaaSUNOLandingPage = () => {
               </div>
 
               <div className="differentiator-card">
-                <div className="differentiator-icon"></div>
+                <div className="differentiator-icon">👥</div>
                 <h3>Dynamic Learning & Community Platform</h3>
                 <p>
                   Our platform creates thriving ecosystems by combining Learning Management, Community Engagement, 
-                  Alumni Networks, and Communication Tools. This fosters continuous knowledge sharing, professional 
-                  growth, and sustainable community development.
+                  Alumni Networks, and Communication Tools.
                 </p>
                 <div className="differentiator-stats">
                   <div className="stat">
@@ -469,7 +419,7 @@ const SaaSUNOLandingPage = () => {
                 </div>
               </div>
               <div className="workflow-image">
-                <img src={`${process.env.PUBLIC_URL}/images/1.png`} alt="Workflow Integration" />
+                <img src={`${process.env.PUBLIC_URL}/images/1.png`} alt="Workflow Integration" loading="lazy" />
               </div>
             </div>
           </div>
@@ -498,7 +448,7 @@ const SaaSUNOLandingPage = () => {
               </div>
             </div>
             <div className="process-image">
-              <img src={`${process.env.PUBLIC_URL}/images/2.png`} alt="Development Process" />
+              <img src={`${process.env.PUBLIC_URL}/images/2.png`} alt="Development Process" loading="lazy" />
             </div>
           </div>
         </section>
@@ -513,9 +463,7 @@ const SaaSUNOLandingPage = () => {
                 <p className="client-industry">Logistics & Supply Chain</p>
                 <p className="client-description">
                   We revolutionized Seal Freight's logistics operations with a comprehensive SaaS solution 
-                  featuring real-time tracking, automated workflows, and advanced analytics. The platform 
-                  seamlessly integrates with their existing systems while providing actionable insights 
-                  for operational excellence.
+                  featuring real-time tracking, automated workflows, and advanced analytics.
                 </p>
                 <div className="client-results">
                   <div className="result">
@@ -536,13 +484,11 @@ const SaaSUNOLandingPage = () => {
                 <div className="carousel">
                   <div className="carousel-slides" style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}>
                     {sealFreightImages.map((image, index) => (
-                      <div
-                        key={index}
-                        className="carousel-slide"
-                      >
+                      <div key={index} className="carousel-slide">
                         <img 
                           src={`${process.env.PUBLIC_URL}/images/${image}`} 
                           alt={`Seal Freight Solution ${index + 1}`}
+                          loading="lazy"
                         />
                       </div>
                     ))}
@@ -579,15 +525,15 @@ const SaaSUNOLandingPage = () => {
                 <ol>
                   <li>
                     <strong>Define Your Vision</strong>
-                    <p>We work with you to understand your business goals and define clear objectives for your digital transformation.</p>
+                    <p>We work with you to understand your business goals and define clear objectives.</p>
                   </li>
                   <li>
                     <strong>Analyze Requirements</strong>
-                    <p>Comprehensive analysis of your business processes, technical requirements, and user needs.</p>
+                    <p>Comprehensive analysis of your business processes and technical requirements.</p>
                   </li>
                   <li>
                     <strong>Develop Solutions</strong>
-                    <p>Agile development of tailored software solutions that address your specific challenges.</p>
+                    <p>Agile development of tailored software solutions for your specific challenges.</p>
                   </li>
                   <li>
                     <strong>Launch & Optimize</strong>
@@ -596,7 +542,7 @@ const SaaSUNOLandingPage = () => {
                 </ol>
               </div>
               <div className="action-image">
-                <img src={`${process.env.PUBLIC_URL}/images/5.png`} alt="Action Plan" />
+                <img src={`${process.env.PUBLIC_URL}/images/5.png`} alt="Action Plan" loading="lazy" />
               </div>
             </div>
           </div>
@@ -608,27 +554,19 @@ const SaaSUNOLandingPage = () => {
             <h2>Start Your Digital Transformation</h2>
             <p className="contact-subtitle">Contact us for a comprehensive consultation and project assessment</p>
             
-            <div style={{
-              background: apiStatus === 'connected' ? '#d1fae5' : 
-                         apiStatus === 'demo' ? '#fef3c7' : '#fee2e2',
-              border: `1px solid ${apiStatus === 'connected' ? '#10b981' : 
-                       apiStatus === 'demo' ? '#f59e0b' : '#ef4444'}`,
-              borderRadius: '8px',
-              padding: '15px',
-              marginBottom: '20px'
-            }}>
-              <strong>📡 System Status:</strong>
-              <p style={{ margin: '5px 0 0', fontSize: '14px' }}>
-                {apiStatus === 'connected' ? 
-                  '✅ Connected to MongoDB - Form data will be saved to database' :
-                 apiStatus === 'demo' ? 
-                  '⚠️ Demo Mode - MongoDB not connected. Form will work but data won\'t persist' :
-                  '❌ Backend not reachable. Please check your connection.'}
-              </p>
-              <p style={{ margin: '5px 0 0', fontSize: '12px', color: '#666' }}>
-                Backend URL: {API_URL}
-              </p>
-            </div>
+            {/* Form Messages */}
+            {formMessage.text && (
+              <div className={`form-message ${formMessage.type}`} style={{
+                background: formMessage.type === 'success' ? '#d4edda' : '#f8d7da',
+                color: formMessage.type === 'success' ? '#155724' : '#721c24',
+                padding: '12px 20px',
+                borderRadius: '6px',
+                marginBottom: '20px',
+                border: `1px solid ${formMessage.type === 'success' ? '#c3e6cb' : '#f5c6cb'}`
+              }}>
+                {formMessage.type === 'success' ? '✅' : '❌'} {formMessage.text}
+              </div>
+            )}
             
             {submitSuccess && (
               <div className="success-message" style={{
@@ -666,33 +604,33 @@ const SaaSUNOLandingPage = () => {
                   <input
                     type="text"
                     name="name"
-                    placeholder="Your Name"
+                    placeholder="Your Name *"
                     value={formData.name}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting || apiStatus === 'disconnected'}
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
                   <input
                     type="email"
                     name="email"
-                    placeholder="Your Email"
+                    placeholder="Your Email *"
                     value={formData.email}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting || apiStatus === 'disconnected'}
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
                   <input
                     type="text"
                     name="company"
-                    placeholder="Company Name"
+                    placeholder="Company Name *"
                     value={formData.company}
                     onChange={handleInputChange}
                     required
-                    disabled={submitting || apiStatus === 'disconnected'}
+                    disabled={submitting}
                   />
                 </div>
                 <div className="form-group">
@@ -701,15 +639,14 @@ const SaaSUNOLandingPage = () => {
                     placeholder="Tell us about your project requirements, challenges, and goals..."
                     value={formData.message}
                     onChange={handleInputChange}
-                    rows="5"
-                    required
-                    disabled={submitting || apiStatus === 'disconnected'}
+                    rows="4"
+                    disabled={submitting}
                   ></textarea>
                 </div>
                 <button 
                   type="submit" 
                   className="submit-btn" 
-                  disabled={submitting || apiStatus === 'disconnected'}
+                  disabled={submitting}
                   style={{ position: 'relative' }}
                 >
                   {submitting ? (
@@ -724,10 +661,10 @@ const SaaSUNOLandingPage = () => {
                         animation: 'spin 1s linear infinite',
                         marginRight: '8px'
                       }}></span>
-                      Submitting...
+                      Processing...
                     </>
                   ) : (
-                    apiStatus === 'disconnected' ? 'Backend Unavailable' : 'Send Request'
+                    'Send Request'
                   )}
                 </button>
                 <style>{`
@@ -742,11 +679,7 @@ const SaaSUNOLandingPage = () => {
                   marginTop: '10px',
                   textAlign: 'center'
                 }}>
-                  {apiStatus === 'connected' ? 
-                    '✅ Your information will be securely saved to our database' :
-                   apiStatus === 'demo' ? 
-                    '⚠️ Demo mode - Data will be processed but not saved to database' :
-                    '❌ Cannot connect to backend server'}
+                  Your information is secure and will be saved to our database
                 </p>
               </form>
             </div>
@@ -771,9 +704,9 @@ const SaaSUNOLandingPage = () => {
               </div>
             </div>
             <div className="footer-bottom">
-              <p>&copy; 2024 SaasUNO Technologies. All rights reserved.</p>
+              <p>&copy; {new Date().getFullYear()} SaasUNO Technologies. All rights reserved.</p>
               <p style={{ fontSize: '12px', color: '#999', marginTop: '5px' }}>
-                Backend Status: {apiStatusMsg.text} | API: {API_URL}
+                Powered by React & MongoDB | Backend: Render.com
               </p>
             </div>
           </div>

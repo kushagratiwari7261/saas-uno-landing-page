@@ -4,17 +4,39 @@ const cors = require('cors');
 const connectDB = require('./config/db');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+// Parse FRONTEND_URL as comma-separated list for multiple origins
+const allowedOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : ['http://localhost:3000'];
+
+console.log('🌐 Allowed CORS Origins:', allowedOrigins);
+
+// Simplified CORS configuration - more permissive for development
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow all origins in development
+    if (process.env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
+    
+    // In production, check against allowed list
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
+      return callback(null, true);
+    }
+    
+    console.log(`🚫 CORS blocked: ${origin}`);
+    return callback(new Error('CORS not allowed'), false);
+  },
   credentials: true
-}));
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB (but don't crash if it fails)
+// Connect to MongoDB
 let mongoConnected = false;
 
 (async () => {
@@ -29,7 +51,7 @@ const adminRoutes = require('./routes/adminRoutes');
 app.use('/api/contacts', contactRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Health check - show MongoDB status
+// Health check
 app.get('/api/health', (req, res) => {
   const mongoose = require('mongoose');
   const dbStatus = mongoose.connection.readyState === 1 ? 'Connected' : 'Disconnected';
@@ -39,12 +61,11 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date(),
     server: 'Running',
     mongodb: dbStatus,
-    environment: process.env.NODE_ENV,
-    frontend: process.env.FRONTEND_URL
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Simple test endpoint
+// Test endpoint
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: '🚀 Backend is working!',
@@ -53,32 +74,21 @@ app.get('/api/test', (req, res) => {
   });
 });
 
-// Root endpoint
+// Root
 app.get('/', (req, res) => {
   res.json({
     message: '🎯 SaaSuno Backend API',
     status: 'Live',
-    endpoints: {
-      root: '/',
-      health: '/api/health',
-      test: '/api/test',
-      contactForm: 'POST /api/contacts',
-      getContacts: 'GET /api/contacts',
-      admin: {
-        getContacts: 'GET /api/admin/contacts',
-        statistics: 'GET /api/admin/statistics'
-      }
-    },
     mongodb: mongoConnected ? '✅ Connected' : '⚠️ Not Connected'
   });
 });
 
-// Start server (even if MongoDB fails!)
+// Start server
 app.listen(PORT, () => {
   console.log('='.repeat(50));
   console.log(`🚀 SERVER STARTED on port ${PORT}`);
-  console.log(`🌐 URL: https://saasuno-backend.onrender.com`);
-  console.log(`🔗 Health: https://saasuno-backend.onrender.com/api/health`);
+  console.log(`🌐 URL: http://localhost:${PORT}`);
+  console.log(`🌍 CORS: ${process.env.NODE_ENV === 'development' ? 'All origins allowed (development)' : 'Restricted origins'}`);
   console.log(`📡 MongoDB: ${mongoConnected ? '✅ Connected' : '⚠️ Not Connected'}`);
   console.log('='.repeat(50));
 });
