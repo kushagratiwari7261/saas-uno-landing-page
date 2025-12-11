@@ -62,7 +62,8 @@ const AdminDashboard = () => {
       setLoading(true);
       setError('');
       
-      const response = await fetch(`${API_URL}/admin/contacts`, {
+      // FIXED: Added /api prefix
+      const response = await fetch(`${API_URL}/api/admin/contacts`, {
         headers: {
           'Authorization': `Bearer ${authToken || 'admin123'}`
         }
@@ -149,7 +150,8 @@ const AdminDashboard = () => {
 
   const updateContactStatus = async (id, newStatus, notes = '') => {
     try {
-      const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
+      // FIXED: Added /api prefix
+      const response = await fetch(`${API_URL}/api/admin/contacts/${id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -189,13 +191,13 @@ const AdminDashboard = () => {
         setSelectedRequest(null);
         setAdminNotes('');
         
-        alert(`✅ Status updated to ${newStatus}`);
+        alert(` Status updated to ${newStatus}`);
       } else {
         throw new Error('Update failed');
       }
     } catch (error) {
       console.error('Update error:', error);
-      alert('⚠️ Failed to update status.');
+      alert(' Failed to update status.');
     }
   };
 
@@ -205,7 +207,8 @@ const AdminDashboard = () => {
     }
     
     try {
-      const response = await fetch(`${API_URL}/admin/contacts/${id}`, {
+      // FIXED: Added /api prefix
+      const response = await fetch(`${API_URL}/api/admin/contacts/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${authToken || 'admin123'}`
@@ -215,13 +218,13 @@ const AdminDashboard = () => {
       if (response.ok) {
         setRequests(prevRequests => prevRequests.filter(r => r._id !== id));
         updateStats(requests.filter(r => r._id !== id));
-        alert('✅ Contact deleted successfully');
+        alert('Contact deleted successfully');
       } else {
         throw new Error('Delete failed');
       }
     } catch (error) {
       console.error('Delete error:', error);
-      alert('⚠️ Failed to delete contact.');
+      alert(' Failed to delete contact.');
     }
   };
 
@@ -310,8 +313,8 @@ const AdminDashboard = () => {
     return (
       <div className="admin-login">
         <div className="login-container">
-          <h2>🔐 Admin Dashboard</h2>
-          <p className="login-subtitle">Enter admin password to access contact requests</p>
+        
+          
           
           <form onSubmit={handleLogin}>
             <div className="form-group">
@@ -339,7 +342,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="admin-header">
         <div className="header-left">
-          <h1>📊 Contact Requests Dashboard</h1>
+          <h1> Contact Requests Dashboard</h1>
           <p className="header-subtitle">Manage all contact form submissions</p>
         </div>
         <div className="header-actions">
@@ -348,7 +351,7 @@ const AdminDashboard = () => {
             onClick={fetchContacts} 
             disabled={loading}
           >
-            {loading ? '🔄 Refreshing...' : '🔄 Refresh'}
+            {loading ? ' Refreshing...' : ' Refresh'}
           </button>
           <button className="btn-export" onClick={exportToCSV}>
             📥 Export CSV
@@ -362,7 +365,7 @@ const AdminDashboard = () => {
       {/* Stats Cards */}
       <div className="stats-container">
         <div className="stat-card total">
-          <div className="stat-icon">📋</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <div className="stat-value">{stats.total}</div>
             <div className="stat-label">Total</div>
@@ -378,7 +381,7 @@ const AdminDashboard = () => {
         </div>
         
         <div className="stat-card contacted">
-          <div className="stat-icon">✅</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <div className="stat-value">{stats.contacted}</div>
             <div className="stat-label">Contacted</div>
@@ -386,7 +389,7 @@ const AdminDashboard = () => {
         </div>
         
         <div className="stat-card rejected">
-          <div className="stat-icon">❌</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <div className="stat-value">{stats.rejected}</div>
             <div className="stat-label">Rejected</div>
@@ -394,7 +397,7 @@ const AdminDashboard = () => {
         </div>
         
         <div className="stat-card today">
-          <div className="stat-icon">📅</div>
+          <div className="stat-icon"></div>
           <div className="stat-content">
             <div className="stat-value">{stats.today}</div>
             <div className="stat-label">Today</div>
@@ -507,7 +510,7 @@ const AdminDashboard = () => {
                             setAdminNotes(request.notes || '');
                           }}
                         >
-                          👁️ View
+                           View
                         </button>
                         
                         {request.status === 'pending' && (
@@ -516,13 +519,13 @@ const AdminDashboard = () => {
                               className="btn-contact"
                               onClick={() => updateContactStatus(request._id, 'contacted')}
                             >
-                              ✅ Contacted
+                              Contacted
                             </button>
                             <button 
                               className="btn-reject"
                               onClick={() => updateContactStatus(request._id, 'rejected')}
                             >
-                              ❌ Reject
+                               Reject
                             </button>
                           </>
                         )}
@@ -625,7 +628,7 @@ const AdminDashboard = () => {
                   updateContactStatus(selectedRequest._id, selectedRequest.status, adminNotes);
                 }}
               >
-                💾 Save Notes
+                Save Notes
               </button>
               
               <button 
@@ -635,7 +638,7 @@ const AdminDashboard = () => {
                 }}
                 disabled={selectedRequest.status === 'contacted'}
               >
-                ✅ Mark as Contacted
+                Mark as Contacted
               </button>
               
               <button 
@@ -645,7 +648,7 @@ const AdminDashboard = () => {
                 }}
                 disabled={selectedRequest.status === 'rejected'}
               >
-                ❌ Mark as Rejected
+                 Mark as Rejected
               </button>
               
               <button 

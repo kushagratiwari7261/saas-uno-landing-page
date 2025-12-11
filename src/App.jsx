@@ -8,8 +8,8 @@ import AdminDashboard from './components/AdminDashboard';
 // API URL Configuration - Production optimized
 const API_URL = process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com';
 
-console.log('🌐 API URL:', API_URL);
-console.log('🚀 Environment:', process.env.NODE_ENV);
+console.log(' API URL:', API_URL);
+console.log(' Environment:', process.env.NODE_ENV);
 
 // Main Landing Page Component
 const SaaSUNOLandingPage = () => {
@@ -132,7 +132,7 @@ const SaaSUNOLandingPage = () => {
     }
 
     try {
-      console.log('📤 Submitting form to:', `${API_URL}/contacts`);
+      console.log(' Submitting form to:', `${API_URL}/contacts`);
       
       const response = await fetch(`${API_URL}/contacts`, {
         method: 'POST',
@@ -150,7 +150,7 @@ const SaaSUNOLandingPage = () => {
         }),
       });
 
-      console.log('📥 Response status:', response.status);
+      console.log(' Response status:', response.status);
       
       let data;
       try {
