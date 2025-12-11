@@ -48,12 +48,12 @@ const AdminDashboard = () => {
     
     if (password === adminPassword) {
       setIsAuthenticated(true);
-      setAuthToken('admin123');
+      setAuthToken('SaasUno@2025');
       localStorage.setItem('admin_auth', 'true');
-      localStorage.setItem('admin_token', 'admin123');
+      localStorage.setItem('admin_token', 'SaasUno@2025');
       fetchContacts();
     } else {
-      setError('Invalid password. Try: admin123');
+      setError('Invalid password. Try: SaasUno@2025');
     }
   };
 
@@ -65,7 +65,7 @@ const AdminDashboard = () => {
       // FIXED: Added /api prefix
       const response = await fetch(`${API_URL}/api/admin/contacts`, {
         headers: {
-          'Authorization': `Bearer ${authToken || 'admin123'}`
+          'Authorization': `Bearer ${authToken || 'SaasUno@2025'}`
         }
       });
       
@@ -155,7 +155,7 @@ const AdminDashboard = () => {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken || 'admin123'}`
+          'Authorization': `Bearer ${authToken || 'SaasUno@2025'}`
         },
         body: JSON.stringify({ 
           status: newStatus,
@@ -211,7 +211,7 @@ const AdminDashboard = () => {
       const response = await fetch(`${API_URL}/api/admin/contacts/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${authToken || 'admin123'}`
+          'Authorization': `Bearer ${authToken || 'SaasUno@2025'}`
         }
       });
       
