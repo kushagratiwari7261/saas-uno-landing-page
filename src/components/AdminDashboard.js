@@ -314,7 +314,7 @@ const AdminDashboard = () => {
       <div className="admin-login">
         <div className="login-container">
           <h2> Pssword Dall Re</h2>
-          <p className="login-subtitle">Boll Khul ji Sim Sim✨</p>
+          <p className="login-subtitle">Boll Khul ja Sim Sim✨</p>
           
           <form onSubmit={handleLogin}>
             <div className="form-group">
