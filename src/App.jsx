@@ -986,7 +986,7 @@ const PrudataLandingPage = () => {
                     <li>Workflow Automation & Process Optimization</li>
                     <li>Data Analytics & Business Intelligence</li>
                     <li>Enterprise System Integration</li>
-                    <li>Legacy System Modernization</li>
+                    <li>Social media and marketing</li>
                     <li>Performance Monitoring & Optimization</li>
                   </ul>
                 </div>
@@ -1184,7 +1184,7 @@ const PrudataLandingPage = () => {
                   </div>
                 </div>
                 <div className="workflow-image">
-                  <img src={`${process.env.PUBLIC_URL}/images/1.png`} alt="Workflow Integration Dashboard" loading="lazy" />
+                  <img src={`${process.env.PUBLIC_URL}/images/4.png`} alt="Workflow Integration Dashboard" loading="lazy" />
                 </div>
               </div>
             </div>
