@@ -263,8 +263,8 @@ const PrudataLandingPage = () => {
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* Updated Loading Screen - Black and White Theme */
-        .loading-screen {
+   /* Updated Loading Screen - Black and White Theme */
+.loading-screen {
   position: fixed;
   top: 0;
   left: 0;
@@ -290,36 +290,84 @@ const PrudataLandingPage = () => {
   text-align: center;
 }
 
-        .loading-logo h1 {
-          font-size: 3rem; font-weight: 800; margin-bottom: 10px; /* Reduced from 4rem */
-          color: #ffffff; /* Pure white text */
-          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-        .loading-subtitle { 
-          font-size: 1.1rem; /* Reduced from 1.2rem */
-          color: #ffffff; /* Pure white text */
-          margin-bottom: 40px;
-          opacity: 0.8;
-        }
-        .spinner {
-          width: 60px; height: 60px; border: 3px solid rgba(255,255,255,0.2); /* Reduced from 80px */
-          border-top: 3px solid #ffffff; /* Pure white spinner */
-          border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 25px;
-        }
-        .loading-progress {
-          width: 250px; height: 3px; background: rgba(255,255,255,0.2); border-radius: 2px; /* Reduced from 300px */
-          overflow: hidden; margin-bottom: 15px;
-        }
-        .loading-progress-bar {
-          height: 100%; background: linear-gradient(90deg, #ffffff, #cccccc); /* White gradient */
-          transition: width 0.3s ease;
-        }
-        .loading-percentage { 
-          font-size: 1.3rem; /* Reduced from 1.5rem */
-          font-weight: 600; 
-          color: #ffffff; /* Pure white text */
-        }
-        
+.logo-container {
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading-logo-image {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  animation: pulse 2s ease-in-out infinite;
+  filter: brightness(1.1) contrast(1.1); /* Makes logo stand out on black background */
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  }
+  50% { 
+    transform: scale(1.05); 
+    opacity: 0.9; 
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+  }
+}
+
+.loading-logo h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.loading-subtitle { 
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin-bottom: 40px;
+  opacity: 0.8;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 25px;
+}
+
+.loading-progress {
+  width: 250px;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
+
+.loading-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffffff, #cccccc);
+  transition: width 0.3s ease;
+}
+
+.loading-percentage { 
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+@keyframes spin { 
+  from { transform: rotate(0deg); } 
+  to { transform: rotate(360deg); } 
+}
         .navbar {
           position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
           background: ${scrollY > 50 ? 'rgba(10, 10, 15, 0.95)' : 'transparent'};
@@ -917,16 +965,23 @@ const PrudataLandingPage = () => {
 
       {isLoading && (
         <div className="loading-screen">
-          <div className="loading-logo">
-            <h1>       Prudata</h1>
-            <div className="loading-subtitle">Where Ideas Meet Impact – Launch Smarter, Grow Faster</div>
-          </div>
-          <div className="spinner"></div>
-          <div className="loading-progress">
-            <div className="loading-progress-bar" style={{ width: `${loadingProgress}%` }}></div>
-          </div>
-          <div className="loading-percentage">{Math.min(100, Math.round(loadingProgress))}%</div>
-        </div>
+  <div className="loading-logo">
+    <div className="logo-container">
+      <img 
+        src={`${process.env.PUBLIC_URL}/logo192.png`} 
+        alt="Prudata Logo" 
+        className="loading-logo-image"
+      />
+    </div>
+    <h1>Prudata</h1>
+    <div className="loading-subtitle">Where Ideas Meet Impact – Launch Smarter, Grow Faster</div>
+  </div>
+  <div className="spinner"></div>
+  <div className="loading-progress">
+    <div className="loading-progress-bar" style={{ width: `${loadingProgress}%` }}></div>
+  </div>
+  <div className="loading-percentage">{Math.min(100, Math.round(loadingProgress))}%</div>
+</div>
       )}
 
       {!isLoading && (
