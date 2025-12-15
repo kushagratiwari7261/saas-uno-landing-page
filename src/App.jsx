@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AdminDashboard from './components/AdminDashboard'; // Add this line
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com';
 
@@ -73,12 +74,7 @@ const SVGIcon = ({ name, className = "", style = {} }) => {
   return icons[name] || null;
 };
 
-const AdminDashboard = () => (
-  <div style={{ padding: '40px', textAlign: 'center' }}>
-    <h1>Admin Dashboard</h1>
-    <p>Admin functionality preserved from original code</p>
-  </div>
-);
+
 
 const PrudataLandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -1473,7 +1469,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/" element={<PrudataLandingPage />} />
+        <Route path="/*" element={<PrudataLandingPage />} />
       </Routes>
     </Router>
   );
