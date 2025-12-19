@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminDashboard from './components/AdminDashboard';
+import AdminDashboard from './components/AdminDashboard'; // Add this line
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://saasuno-backend.onrender.com';
 
 // SVG Icons Component
 const SVGIcon = ({ name, className = "", style = {} }) => {
   const icons = {
+    // Platform Features
     performance: (
       <svg className={className} style={style} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M3.055 13H5.07a7.002 7.002 0 0 0 13.858 0h2.016a9.001 9.001 0 0 1-17.89 0Zm0-2a9.001 9.001 0 0 1 17.89 0H18.93a7.002 7.002 0 0 0-13.858 0H3.055Z" />
@@ -23,11 +24,12 @@ const SVGIcon = ({ name, className = "", style = {} }) => {
       </svg>
     ),
     automation: (
-      <svg className={className} style={style} xmlns="http://www.w3.org2000/svg" viewBox="0 0 24 24" fill="currentColor">
-        <path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6ZM13.5 3A1.5 1.5 0 0 0 12 4.5h4.5A1.5 1.5 0 0 0 15 3h-1.5Z" clipRule="evenodd" />
+      <svg className={className} style={style} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path fillRule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6ZM13.5 3A1.5 1.5 0 0 0 12 4.5h4.5A1.5 1.5 0 0 0 15 3h-1.5Z" clipRule="evenodd" />
         <path fillRule="evenodd" d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V9.375Zm9.586 4.594a.75.75 0 0 0-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 0 0-1.06 1.06l1.5 1.5a.75.75 0 0 0 1.116-.062l3-3.75Z" clipRule="evenodd" />
       </svg>
     ),
+    // Differentiator Icons
     research: (
       <svg className={className} style={style} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.25 4.533A9.707 9.707 0 0 0 6 3a9.735 9.735 0 0 0-3.25.555.75.75 0 0 0-.5.707v14.25a.75.75 0 0 0 1 .707A8.237 8.237 0 0 1 6 18.75c1.995 0 3.823.707 5.25 1.886V4.533ZM12.75 20.636A8.214 8.214 0 0 1 18 18.75c.966 0 1.89.166 2.75.47a.75.75 0 0 0 1-.708V4.262a.75.75 0 0 0-.5-.707A9.735 9.735 0 0 0 18 3a9.707 9.707 0 0 0-5.25 1.533v16.103Z" />
@@ -43,9 +45,10 @@ const SVGIcon = ({ name, className = "", style = {} }) => {
       <svg className={className} style={style} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M11.7 2.805a.75.75 0 0 1 .6 0A60.65 60.65 0 0 1 22.83 8.72a.75.75 0 0 1-.231 1.337 49.949 49.949 0 0 0-9.902 3.912l-.003.002-.34.18a.75.75 0 0 1-.707 0A50.009 50.009 0 0 0 7.5 12.174v-.224c0-.131.067-.248.172-.311a54.614 54.614 0 0 1 4.653-2.52.75.75 0 0 0-.65-1.352 56.129 56.129 0 0 0-4.78 2.589 1.858 1.858 0 0 0-.859 1.228 49.803 49.803 0 0 0-4.634-1.527.75.75 0 0 1-.231-1.337A60.653 60.653 0 0 1 11.7 2.805Z" />
         <path d="M13.06 15.473a48.45 48.45 0 0 1 7.666-3.282c.134 1.414.22 2.843.255 4.285a.75.75 0 0 1-.46.71 47.878 47.878 0 0 0-8.105 4.342.75.75 0 0 1-.832 0 47.877 47.877 0 0 0-8.104-4.342.75.75 0 0 1-.461-.71c.035-1.442.121-2.87.255-4.286A48.4 48.4 0 0 1 6 13.18v1.27a1.5 1.5 0 0 0-.14 2.508c-.09.38-.222.753-.397 1.11.452.213.901.434 1.346.661a6.729 6.729 0 0 0 .551-1.608 1.5 1.5 0 0 0 .14-2.67v-.645a48.549 48.549 0 0 1 3.44 1.668 2.25 2.25 0 0 0 2.12 0Z" />
-        <path d="M4.462 19.462c.42-.419.753-.89.991-1.394a.75.75 0 0 1 1.212.882 7.48 7.48 0 0 1-1.212 2.022.75.75 0 0 0-1.06-1.06c.37-.369.69-.77.96-1.193a.75.75 0 0 1 .11-.257Z" />
+        <path d="M4.462 19.462c.42-.419.753-.89.991-1.394a.75.75 0 0 1 1.212.882 7.48 7.48 0 0 1-1.212 2.022.75.75 0 0 1-1.06-1.06c.37-.369.69-.77.96-1.193a.75.75 0 0 1 .11-.257Z" />
       </svg>
     ),
+    // Uptime Icon
     uptime: (
       <svg className={className} style={style} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
@@ -71,6 +74,8 @@ const SVGIcon = ({ name, className = "", style = {} }) => {
   return icons[name] || null;
 };
 
+
+
 const PrudataLandingPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState(0);
@@ -84,6 +89,7 @@ const PrudataLandingPage = () => {
   const [visibleSections, setVisibleSections] = useState(new Set());
 
   const sectionRefs = useRef({});
+  // Added seal1 to seal8 images
   const sealFreightImages = ['seal1.png', 'seal2.png', 'seal3.png', 'seal4.png', 'seal5.png', 'seal6.png', 'seal7.png', 'seal8.png'];
 
   const integrationLogos = {
@@ -95,39 +101,6 @@ const PrudataLandingPage = () => {
     'Salesforce': 'https://upload.wikimedia.org/wikipedia/commons/f/f9/Salesforce.com_logo.svg',
     'Stripe': 'https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg',
   };
-
-  const scrollDemoItems = [
-    {
-      title: "Smart Analytics Dashboard",
-      subtitle: "Real-time Insights",
-      excerpt: "Comprehensive analytics platform with real-time data visualization and predictive insights for data-driven decision making.",
-      image: "images/1.png"
-    },
-    {
-      title: "Workflow Automation",
-      subtitle: "Process Optimization",
-      excerpt: "Automate repetitive tasks and streamline business processes with intelligent workflow automation and AI-powered optimization.",
-      image: "images/2.png"
-    },
-    {
-      title: "Integration Hub",
-      subtitle: "Seamless Connectivity",
-      excerpt: "Connect all your business tools and applications through our comprehensive integration platform with 100+ pre-built connectors.",
-      image: "images/3.png"
-    },
-    {
-      title: "Security Center",
-      subtitle: "Enterprise Protection",
-      excerpt: "Bank-level security features with real-time threat detection, compliance monitoring, and data protection across all platforms.",
-      image: "images/4.png"
-    },
-    {
-      title: "Cloud Infrastructure",
-      subtitle: "Scalable Solutions",
-      excerpt: "Enterprise-grade cloud infrastructure with automatic scaling, load balancing, and global CDN for optimal performance.",
-      image: "images/5.png"
-    }
-  ];
 
   const goToPrev = () => {
     setCurrentImageIndex((prevIndex) => 
@@ -290,272 +263,111 @@ const PrudataLandingPage = () => {
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
         
-        /* Updated Loading Screen - Black and White Theme */
-        .loading-screen {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100vh;
-          background: #000000;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
-          z-index: 9999;
-          text-align: center;
-          color: white;
-          padding: 20px;
-          box-sizing: border-box;
-        }
+   /* Updated Loading Screen - Black and White Theme */
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: #000000;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  text-align: center;
+  color: white;
+  padding: 20px;
+  box-sizing: border-box;
+}
 
-        .loading-logo {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin-bottom: 40px;
-          text-align: center;
-        }
+.loading-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 40px;
+  text-align: center;
+}
 
-        .logo-container {
-          margin-bottom: 25px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
+.logo-container {
+  margin-bottom: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-        .loading-logo-image {
-          width: 150px;
-          height: 150px;
-          object-fit: contain;
-          animation: pulse 2s ease-in-out infinite;
-          filter: brightness(1.1) contrast(1.1);
-        }
+.loading-logo-image {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  animation: pulse 2s ease-in-out infinite;
+  filter: brightness(1.1) contrast(1.1); /* Makes logo stand out on black background */
+}
 
-        @keyframes pulse {
-          0%, 100% { 
-            transform: scale(1); 
-            opacity: 1; 
-            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-          }
-          50% { 
-            transform: scale(1.05); 
-            opacity: 0.9; 
-            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
-          }
-        }
+@keyframes pulse {
+  0%, 100% { 
+    transform: scale(1); 
+    opacity: 1; 
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+  }
+  50% { 
+    transform: scale(1.05); 
+    opacity: 0.9; 
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.5));
+  }
+}
 
-        .loading-logo h1 {
-          font-size: 3rem;
-          font-weight: 800;
-          margin-bottom: 10px;
-          color: #ffffff;
-          text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
+.loading-logo h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
 
-        .loading-subtitle { 
-          font-size: 1.1rem;
-          color: #ffffff;
-          margin-bottom: 40px;
-          opacity: 0.8;
-        }
+.loading-subtitle { 
+  font-size: 1.1rem;
+  color: #ffffff;
+  margin-bottom: 40px;
+  opacity: 0.8;
+}
 
-        .spinner {
-          width: 60px;
-          height: 60px;
-          border: 3px solid rgba(255,255,255,0.2);
-          border-top: 3px solid #ffffff;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin-bottom: 25px;
-        }
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(255,255,255,0.2);
+  border-top: 3px solid #ffffff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 25px;
+}
 
-        .loading-progress {
-          width: 250px;
-          height: 3px;
-          background: rgba(255,255,255,0.2);
-          border-radius: 2px;
-          overflow: hidden;
-          margin-bottom: 15px;
-        }
+.loading-progress {
+  width: 250px;
+  height: 3px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 15px;
+}
 
-        .loading-progress-bar {
-          height: 100%;
-          background: linear-gradient(90deg, #ffffff, #cccccc);
-          transition: width 0.3s ease;
-        }
+.loading-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #ffffff, #cccccc);
+  transition: width 0.3s ease;
+}
 
-        .loading-percentage { 
-          font-size: 1.3rem;
-          font-weight: 600;
-          color: #ffffff;
-        }
+.loading-percentage { 
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #ffffff;
+}
 
-        /* Scroll Animation Effect Styles */
-        .scroll-section {
-          width: min(1200px, 90%);
-          margin: 40px auto 0;
-          padding: 80px 0;
-          line-height: 2;
-          color: #fff;
-        }
-
-        .c-hotels {
-          width: min(1200px, 90%);
-          margin: 0 auto;
-        }
-
-        .c-hotels__title {
-          width: min(1200px, 100%);
-          padding: 64px 20px;
-          color: #fff;
-          text-align: center;
-          font-size: 44px;
-          color: #ffeba7;
-          margin-bottom: 40px;
-        }
-
-        .c-hotels__list {
-          display: grid;
-          gap: 40px;
-        }
-
-        /* Sticky card with scroll animation */
-        .c-hotels__item {
-          position: sticky;
-          top: 50px;
-          right: 0;
-          left: 0;
-          display: grid;
-          grid-template-columns: 1fr;
-          grid-template-rows: 300px auto;
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          border-radius: 20px;
-          overflow: hidden;
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(10px);
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-          
-          /* Apply scroll animation to all but the last item */
-          animation: in-n-out linear;
-          animation-timeline: view();
-          animation-range: entry 90% cover 50%;
-        }
-
-        /* For tablet and larger screens */
-        @media (min-width: 768px) {
-          .c-hotels__item {
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: minmax(500px, 60vh);
-          }
-        }
-
-        .c-hotels__item-figure {
-          grid-column: 1 / -1;
-          grid-row: 1 / 2;
-          overflow: hidden;
-          
-          @media (min-width: 768px) {
-            grid-column: 1 / 2;
-            grid-row: 1 / -1;
-          }
-        }
-
-        .c-hotels__item-figure img {
-          display: block;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.5s ease;
-        }
-
-        .c-hotels__item:hover .c-hotels__item-figure img {
-          transform: scale(1.05);
-        }
-
-        .c-hotels__item-info {
-          grid-column: 1 / -1;
-          grid-row: 2 / -1;
-          height: 100%;
-          display: grid;
-          align-content: center;
-          padding: 40px;
-          background: rgba(10, 10, 15, 0.95);
-          
-          @media (min-width: 768px) {
-            grid-column: 2 / -1;
-            grid-row: 1 / -1;
-            background: linear-gradient(90deg, rgba(10, 10, 15, 0.9) 0%, rgba(10, 10, 15, 0.95) 100%);
-          }
-        }
-
-        .c-hotels__item-title {
-          font-size: 36px;
-          font-weight: 800;
-          margin-bottom: 15px;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .c-hotels__item-subtitle {
-          margin-bottom: 16px;
-          text-transform: uppercase;
-          color: #ffeba7;
-          font-weight: 600;
-          letter-spacing: 1.5px;
-          font-size: 14px;
-        }
-
-        .c-hotels__item-excerpt {
-          margin-bottom: 30px;
-          font-size: 18px;
-          line-height: 1.7;
-          color: rgba(255, 255, 255, 0.8);
-        }
-
-        .c-hotels__item-link {
-          width: max-content;
-          padding: 14px 32px;
-          text-decoration: none;
-          border: 2px solid #ffeba7;
-          background: transparent;
-          color: #ffeba7;
-          font-weight: 600;
-          border-radius: 8px;
-          transition: all 0.5s ease-in-out;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          font-size: 14px;
-        }
-
-        .c-hotels__item-link:hover {
-          background: #ffeba7;
-          color: #000;
-          transform: translateY(-3px);
-          box-shadow: 0 10px 30px rgba(255, 235, 167, 0.3);
-        }
-
-        /* Scroll animation keyframes */
-        @keyframes in-n-out {
-          0%, 75% {
-            transform: scale(1);
-            opacity: 1;
-          }
-          90%, 100% {
-            transform: scale(0.95);
-            opacity: 0.9;
-          }
-        }
-
-        /* Fallback for browsers that don't support view() animations */
-        @supports not (animation-timeline: view()) {
-          .c-hotels__item {
-            animation: none;
-            transition: transform 0.5s ease, opacity 0.5s ease;
-          }
-        }
-
+@keyframes spin { 
+  from { transform: rotate(0deg); } 
+  to { transform: rotate(360deg); } 
+}
         .navbar {
           position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
           background: ${scrollY > 50 ? 'rgba(10, 10, 15, 0.95)' : 'transparent'};
@@ -563,44 +375,44 @@ const PrudataLandingPage = () => {
           border-bottom: 1px solid ${scrollY > 50 ? 'rgba(255,255,255,0.1)' : 'transparent'};
         }
         .nav-container {
-          max-width: 1200px; margin: 0 auto; padding: 15px 30px;
+          max-width: 1200px; margin: 0 auto; padding: 15px 30px; /* Reduced from 1400px and 20px 40px */
           display: flex; justify-content: space-between; align-items: center;
         }
         .logo h2 {
-          font-size: 1.6rem; font-weight: 800; cursor: pointer;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+          font-size: 1.6rem; font-weight: 800; cursor: pointer; /* Reduced from 2rem */
+          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); /* White gradient */
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .nav-menu { display: flex; gap: 30px; align-items: center; }
+        .nav-menu { display: flex; gap: 30px; align-items: center; } /* Reduced from 40px */
         .nav-menu a {
-          color: #fff; text-decoration: none; font-weight: 500; font-size: 0.9rem;
+          color: #fff; text-decoration: none; font-weight: 500; font-size: 0.9rem; /* Reduced from 0.95rem */
           transition: all 0.3s ease; position: relative;
         }
         .nav-menu a:not(.cta-button):hover { color: #ffffff; }
         .nav-menu a:not(.cta-button)::after {
           content: ''; position: absolute; bottom: -5px; left: 0; width: 0; height: 2px;
-          background: linear-gradient(90deg, #ffffff, #cccccc);
+          background: linear-gradient(90deg, #ffffff, #cccccc); /* White gradient */
           transition: width 0.3s ease;
         }
         .nav-menu a:not(.cta-button):hover::after { width: 100%; }
         .cta-button {
-          padding: 10px 22px !important; border-radius: 8px; font-weight: 600 !important;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%) !important;
-          color: #000000 !important;
-          box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4); transition: all 0.3s ease !important;
+          padding: 10px 22px !important; border-radius: 8px; font-weight: 600 !important; /* Reduced from 12px 28px */
+          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%) !important; /* White gradient */
+          color: #000000 !important; /* Black text for contrast */
+          box-shadow: 0 3px 12px rgba(255, 255, 255, 0.4); transition: all 0.3s ease !important; /* Reduced shadow */
         }
         .cta-button:hover {
-          transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255, 255, 255, 0.6);
-          background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%) !important;
+          transform: translateY(-2px); box-shadow: 0 5px 20px rgba(255, 255, 255, 0.6); /* Reduced shadow */
+          background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%) !important; /* Solid white on hover */
         }
         
         .hamburger { display: none; flex-direction: column; cursor: pointer; gap: 4px; }
-        .hamburger span { width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: all 0.3s ease; }
+        .hamburger span { width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: all 0.3s ease; } /* Reduced size */
         
         @media (max-width: 768px) {
           .hamburger { display: flex; }
           .nav-menu {
-            position: fixed; top: 60px; left: 0; right: 0; flex-direction: column;
+            position: fixed; top: 60px; left: 0; right: 0; flex-direction: column; /* Reduced from 70px */
             background: rgba(10, 10, 15, 0.98); padding: 15px; gap: 15px;
             transform: translateY(${isMenuOpen ? '0' : '-100%'});
             opacity: ${isMenuOpen ? '1' : '0'}; transition: all 0.3s ease;
@@ -609,16 +421,10 @@ const PrudataLandingPage = () => {
           .nav-menu.mobile-active {
             display: flex !important;
           }
-          .c-hotels__item-title {
-            font-size: 28px;
-          }
-          .c-hotels__item-excerpt {
-            font-size: 16px;
-          }
         }
         
         .hero {
-          padding: 140px 30px 80px; background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+          padding: 140px 30px 80px; background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%); /* Reduced padding */
           position: relative; overflow: hidden;
         }
         .hero::before {
@@ -628,116 +434,116 @@ const PrudataLandingPage = () => {
           pointer-events: none;
         }
         .hero-container {
-          max-width: 1200px; margin: 0 auto; display: grid;
-          grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1;
+          max-width: 1200px; margin: 0 auto; display: grid; /* Reduced from 1400px */
+          grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; position: relative; z-index: 1; /* Reduced from 80px */
         }
         .hero-content { animation: slideInLeft 1s ease-out; }
         .hero h1 {
-          font-size: 2.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 25px;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+          font-size: 2.8rem; font-weight: 800; line-height: 1.2; margin-bottom: 25px; /* Reduced from 3.5rem */
+          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); /* White gradient */
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .hero p { 
-          font-size: 1.1rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 35px;
+          font-size: 1.1rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 35px; /* Reduced from 1.25rem */
         }
         .hero-cta {
-          padding: 15px 35px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
-          color: #000000;
-          cursor: pointer; box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4); transition: all 0.3s ease;
+          padding: 15px 35px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; /* Reduced from 18px 40px */
+          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); /* White gradient */
+          color: #000000; /* Black text for contrast */
+          cursor: pointer; box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4); transition: all 0.3s ease; /* Reduced shadow */
         }
         .hero-cta:hover {
-          transform: translateY(-3px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.6);
-          background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+          transform: translateY(-3px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.6); /* Reduced shadow */
+          background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%); /* Solid white on hover */
         }
         .hero-image { animation: slideInRight 1s ease-out; }
         .hero-image img {
-          width: 100%; height: auto; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          width: 100%; height: auto; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
           animation: float 6s ease-in-out infinite;
         }
         
         @media (max-width: 968px) {
           .hero-container { grid-template-columns: 1fr; gap: 40px; }
-          .hero h1 { font-size: 2.2rem; }
+          .hero h1 { font-size: 2.2rem; } /* Reduced from 2.5rem */
           .hero { padding: 120px 20px 60px; }
         }
         
         @media (max-width: 480px) {
-          .hero h1 { font-size: 1.8rem; }
+          .hero h1 { font-size: 1.8rem; } /* Reduced from 2rem */
           .hero p { font-size: 1rem; }
           .nav-container { padding: 12px 20px; }
-          .logo h2 { font-size: 1.4rem; }
+          .logo h2 { font-size: 1.4rem; } /* Reduced from 1.5rem */
         }
         
         /* Scrolling Animation Classes */
         .section {
-          padding: 80px 30px; position: relative;
+          padding: 80px 30px; position: relative; /* Reduced from 120px 40px */
           opacity: 0; transform: translateY(50px); transition: all 0.8s ease;
         }
         .section.visible {
           opacity: 1; transform: translateY(0);
         }
         
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1200px; margin: 0 auto; } /* Reduced from 1400px */
         .section h2 {
-          font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 20px;
-          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+          font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 20px; /* Reduced from 2.8rem */
+          background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); /* White gradient */
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
         .section-subtitle {
-          text-align: center; font-size: 1.1rem; color: rgba(255,255,255,0.7);
-          margin-bottom: 60px; max-width: 700px; margin-left: auto; margin-right: auto;
+          text-align: center; font-size: 1.1rem; color: rgba(255,255,255,0.7); /* Reduced from 1.2rem */
+          margin-bottom: 60px; max-width: 700px; margin-left: auto; margin-right: auto; /* Reduced from 80px and 800px */
         }
         
         .services-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-top: 50px;
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px; margin-top: 50px; /* Reduced gap and margin */
         }
         .service-card {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(204, 204, 204, 0.1) 100%);
-          padding: 30px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease;
+          padding: 30px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.3s ease; /* Reduced padding */
           opacity: 0; transform: translateY(30px); transition: all 0.6s ease 0.2s;
         }
         .section.visible .service-card {
           opacity: 1; transform: translateY(0);
         }
         .service-card:hover {
-          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2);
+          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5); /* Reduced from -10px */
+          box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2); /* Reduced shadow */
         }
-        .service-card h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; color: #ffffff; }
+        .service-card h3 { font-size: 1.6rem; font-weight: 700; margin-bottom: 20px; color: #ffffff; } /* Reduced from 1.8rem */
         .service-card ul { list-style: none; }
         .service-card li {
-          padding: 10px 0; color: rgba(255,255,255,0.8); font-size: 1rem;
+          padding: 10px 0; color: rgba(255,255,255,0.8); font-size: 1rem; /* Reduced from 12px 0 and 1.05rem */
           border-bottom: 1px solid rgba(255,255,255,0.05);
         }
         .service-card li:last-child { border-bottom: none; }
-        .service-card li::before { content: '→'; margin-right: 10px; color: #ffffff; font-weight: bold; }
+        .service-card li::before { content: '→'; margin-right: 10px; color: #ffffff; font-weight: bold; } /* Reduced from 12px */
         
         @media (max-width: 768px) {
           .services-grid { grid-template-columns: 1fr; }
-          .section { padding: 60px 20px; }
-          .section h2 { font-size: 1.8rem; }
+          .section { padding: 60px 20px; } /* Reduced from 80px 20px */
+          .section h2 { font-size: 1.8rem; } /* Reduced from 2rem */
         }
         
         @media (max-width: 480px) {
-          .section h2 { font-size: 1.5rem; }
+          .section h2 { font-size: 1.5rem; } /* Reduced from 1.6rem */
           .section-subtitle { font-size: 1rem; }
-          .service-card { padding: 25px 18px; }
+          .service-card { padding: 25px 18px; } /* Reduced from 30px 20px */
         }
         
         .platform-section {
-          background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px;
+          background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px; /* Reduced padding */
         }
         .platform-content {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; /* Reduced from 80px */
         }
-        .platform-text h2 { text-align: left; margin-bottom: 25px; }
+        .platform-text h2 { text-align: left; margin-bottom: 25px; } /* Reduced from 30px */
         .platform-text p {
-          font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 25px;
+          font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 25px; /* Reduced from 1.15rem */
         }
-        .platform-features { display: grid; gap: 20px; }
+        .platform-features { display: grid; gap: 20px; } /* Reduced from 25px */
         .platform-feature {
-          display: flex; align-items: start; gap: 15px; padding: 20px;
+          display: flex; align-items: start; gap: 15px; padding: 20px; /* Reduced from 20px and 25px */
           background: rgba(255, 255, 255, 0.05); border-radius: 12px;
           border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease;
           opacity: 0; transform: translateX(-30px); transition: all 0.6s ease;
@@ -751,10 +557,10 @@ const PrudataLandingPage = () => {
         .platform-feature:nth-child(4) { transition-delay: 0.4s; }
         .platform-feature:hover {
           background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3);
-          transform: translateX(8px);
+          transform: translateX(8px); /* Reduced from 10px */
         }
         .platform-feature-icon { 
-          min-width: 45px; color: #ffffff;
+          min-width: 45px; color: #ffffff; /* Reduced from 50px */
           display: flex; align-items: center; justify-content: center;
         }
         .svg-icon {
@@ -763,11 +569,11 @@ const PrudataLandingPage = () => {
           color: #ffffff;
         }
         .platform-feature-content h4 {
-          font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: #ffffff;
+          font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; color: #ffffff; /* Reduced from 1.3rem */
         }
-        .platform-feature-content p { font-size: 0.95rem; color: rgba(255,255,255,0.7); margin: 0; }
+        .platform-feature-content p { font-size: 0.95rem; color: rgba(255,255,255,0.7); margin: 0; } /* Reduced from 1rem */
         .platform-visual img {
-          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
         }
         
         @media (max-width: 968px) {
@@ -779,9 +585,9 @@ const PrudataLandingPage = () => {
           .platform-feature-icon { margin: 0 auto; }
         }
         
-        .integrations-section { background: #0a0a0f; padding: 80px 30px; }
+        .integrations-section { background: #0a0a0f; padding: 80px 30px; } /* Reduced padding */
         .integrations-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; margin-top: 50px;
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 25px; margin-top: 50px; /* Reduced from 200px and 30px */
         }
         
         @media (max-width: 768px) {
@@ -793,7 +599,7 @@ const PrudataLandingPage = () => {
         }
         .integration-card {
           background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
-          padding: 25px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+          padding: 25px 18px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); /* Reduced padding */
           text-align: center; transition: all 0.3s ease; cursor: pointer;
           opacity: 0; transform: scale(0.9); transition: all 0.6s ease;
         }
@@ -801,14 +607,14 @@ const PrudataLandingPage = () => {
           opacity: 1; transform: scale(1);
         }
         .integration-card:hover {
-          transform: translateY(-8px) scale(1.03); border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 12px 35px rgba(255, 255, 255, 0.2);
+          transform: translateY(-8px) scale(1.03); border-color: rgba(255, 255, 255, 0.5); /* Reduced from -10px and 1.05 */
+          box-shadow: 0 12px 35px rgba(255, 255, 255, 0.2); /* Reduced shadow */
         }
         .integration-logo {
-          width: 70px; height: 70px; margin: 0 auto 18px; background: #fff; border-radius: 14px;
+          width: 70px; height: 70px; margin: 0 auto 18px; background: #fff; border-radius: 14px; /* Reduced from 80px */
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 4px 15px rgba(0,0,0,0.3); overflow: hidden;
-          padding: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.3); overflow: hidden; /* Reduced shadow */
+          padding: 12px; /* Reduced from 15px */
         }
         .integration-logo img { 
           width: 100%; 
@@ -817,15 +623,15 @@ const PrudataLandingPage = () => {
           max-width: 70%;
           max-height: 70%;
         }
-        .integration-card h4 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 8px; }
-        .integration-card p { font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+        .integration-card h4 { font-size: 1rem; font-weight: 600; color: #fff; margin-bottom: 8px; } /* Reduced from 1.1rem */
+        .integration-card p { font-size: 0.85rem; color: rgba(255,255,255,0.6); } /* Reduced from 0.9rem */
         
         .differentiators-grid {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 30px; margin-top: 50px;
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 30px; margin-top: 50px; /* Reduced from 380px and 40px */
         }
         .differentiator-card {
           background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(204, 204, 204, 0.08) 100%);
-          padding: 35px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s ease;
+          padding: 35px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); transition: all 0.4s ease; /* Reduced padding */
           opacity: 0; transform: translateY(40px); transition: all 0.6s ease;
         }
         .section.visible .differentiator-card {
@@ -835,38 +641,39 @@ const PrudataLandingPage = () => {
         .differentiator-card:nth-child(2) { transition-delay: 0.2s; }
         .differentiator-card:nth-child(3) { transition-delay: 0.3s; }
         .differentiator-card:hover {
-          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 20px 45px rgba(255, 255, 255, 0.3);
+          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5); /* Reduced from -10px */
+          box-shadow: 0 20px 45px rgba(255, 255, 255, 0.3); /* Reduced shadow */
         }
+        /* SVG Icons for differentiator cards - Removed white boxes */
         .differentiator-icon {
-          width: 60px; height: 60px; border-radius: 14px; margin-bottom: 25px;
+          width: 60px; height: 60px; border-radius: 14px; margin-bottom: 25px; /* Reduced from 70px */
           display: flex; align-items: center; justify-content: center;
-          background: transparent;
+          background: transparent; /* Changed from gradient */
         }
         .differentiator-icon svg {
           width: 32px;
           height: 32px;
-          color: #ffffff;
+          color: #ffffff; /* White icons */
         }
-        .differentiator-card h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 18px; color: #fff; }
+        .differentiator-card h3 { font-size: 1.5rem; font-weight: 700; margin-bottom: 18px; color: #fff; } /* Reduced from 1.6rem */
         .differentiator-card p {
-          font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 25px;
+          font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.7; margin-bottom: 25px; /* Reduced from 1.1rem */
         }
-        .differentiator-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .differentiator-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; } /* Reduced from 20px */
         .stat {
-          text-align: center; padding: 18px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;
+          text-align: center; padding: 18px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; /* Reduced padding */
           border: 1px solid rgba(255,255,255,0.05);
         }
         .stat-value {
-          display: block; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px;
+          display: block; font-size: 1.8rem; font-weight: 800; margin-bottom: 6px; /* Reduced from 2.2rem */
           background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .stat-label { display: block; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+        .stat-label { display: block; font-size: 0.85rem; color: rgba(255,255,255,0.6); } /* Reduced from 0.9rem */
         
         @media (max-width: 768px) {
           .differentiators-grid { grid-template-columns: 1fr; }
-          .differentiator-card { padding: 25px; }
+          .differentiator-card { padding: 25px; } /* Reduced from 30px */
         }
         
         @media (max-width: 480px) {
@@ -875,11 +682,11 @@ const PrudataLandingPage = () => {
         }
         
         .workflow-grid {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 50px;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; margin-top: 50px; /* Reduced from 80px */
         }
-        .workflow-features { display: grid; gap: 25px; }
+        .workflow-features { display: grid; gap: 25px; } /* Reduced from 30px */
         .feature {
-          padding: 25px; background: rgba(255, 255, 255, 0.05); border-radius: 14px;
+          padding: 25px; background: rgba(255, 255, 255, 0.05); border-radius: 14px; /* Reduced from 30px and 16px */
           border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease;
           opacity: 0; transform: translateX(-30px); transition: all 0.6s ease;
         }
@@ -891,15 +698,15 @@ const PrudataLandingPage = () => {
         .feature:nth-child(3) { transition-delay: 0.3s; }
         .feature:hover {
           background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3);
-          transform: translateX(8px);
+          transform: translateX(8px); /* Reduced from 10px */
         }
         .feature h4 { 
-          font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; color: #ffffff;
+          font-size: 1.3rem; font-weight: 600; margin-bottom: 10px; color: #ffffff; /* Reduced from 1.4rem */
           display: flex; align-items: center; gap: 10px;
         }
-        .feature p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+        .feature p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; } /* Reduced from 1.05rem */
         .workflow-image img {
-          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
         }
         
         @media (max-width: 968px) {
@@ -908,15 +715,15 @@ const PrudataLandingPage = () => {
         
         @media (max-width: 480px) {
           .feature { padding: 20px; }
-          .feature h4 { font-size: 1.1rem; }
+          .feature h4 { font-size: 1.1rem; } /* Reduced from 1.2rem */
         }
         
         .process-steps {
-          display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-          gap: 25px; margin-top: 50px; margin-bottom: 50px;
+          display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Reduced from 280px */
+          gap: 25px; margin-top: 50px; margin-bottom: 50px; /* Reduced from 30px and 60px */
         }
         .step {
-          padding: 30px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(204, 204, 204, 0.08) 100%);
+          padding: 30px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(204, 204, 204, 0.08) 100%); /* Reduced padding */
           border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);
           text-align: center; transition: all 0.3s ease; position: relative;
           opacity: 0; transform: translateY(40px); transition: all 0.6s ease;
@@ -929,19 +736,19 @@ const PrudataLandingPage = () => {
         .step:nth-child(3) { transition-delay: 0.3s; }
         .step:nth-child(4) { transition-delay: 0.4s; }
         .step::before {
-          content: ''; position: absolute; top: 50%; right: -12px; width: 25px; height: 2px;
+          content: ''; position: absolute; top: 50%; right: -12px; width: 25px; height: 2px; /* Reduced from -15px and 30px */
           background: linear-gradient(90deg, #ffffff, transparent);
         }
         .step:last-child::before { display: none; }
         .step:hover {
-          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5);
-          box-shadow: 0 12px 35px rgba(255, 255, 255, 0.2);
+          transform: translateY(-8px); border-color: rgba(255, 255, 255, 0.5); /* Reduced from -10px */
+          box-shadow: 0 12px 35px rgba(255, 255, 255, 0.2); /* Reduced shadow */
         }
-        .step h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; color: #ffffff; }
-        .step p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; }
+        .step h3 { font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; color: #ffffff; } /* Reduced from 1.5rem */
+        .step p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; } /* Reduced from 1.05rem */
         .process-image img {
-          width: 100%; max-width: 700px; margin: 0 auto; display: block;
-          border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          width: 100%; max-width: 700px; margin: 0 auto; display: block; /* Reduced from 800px */
+          border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
         }
         
         @media (max-width: 768px) {
@@ -950,31 +757,31 @@ const PrudataLandingPage = () => {
         }
         
         .client-showcase {
-          background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px;
+          background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px; /* Reduced padding */
         }
         .client-showcase-content {
-          display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; align-items: center;
+          display: grid; grid-template-columns: 1fr 1.2fr; gap: 60px; align-items: center; /* Reduced from 80px */
         }
-        .client-info h2 { text-align: left; margin-bottom: 12px; }
-        .client-info h3 { font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; }
+        .client-info h2 { text-align: left; margin-bottom: 12px; } /* Reduced from 15px */
+        .client-info h3 { font-size: 2rem; font-weight: 800; color: #ffffff; margin-bottom: 8px; } /* Reduced from 2.5rem */
         .client-industry {
-          font-size: 1rem; color: rgba(255,255,255,0.5); margin-bottom: 25px;
+          font-size: 1rem; color: rgba(255,255,255,0.5); margin-bottom: 25px; /* Reduced from 1.1rem and 30px */
           text-transform: uppercase; letter-spacing: 1.5px;
         }
         .client-description {
-          font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 35px;
+          font-size: 1.05rem; color: rgba(255,255,255,0.8); line-height: 1.7; margin-bottom: 35px; /* Reduced from 1.15rem and 40px */
         }
-        .client-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+        .client-results { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; } /* Reduced from 20px */
         .result {
-          text-align: center; padding: 22px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;
+          text-align: center; padding: 22px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; /* Reduced padding */
           border: 1px solid rgba(255,255,255,0.05);
         }
         .result-value {
-          display: block; font-size: 1.7rem; font-weight: 800; margin-bottom: 6px;
+          display: block; font-size: 1.7rem; font-weight: 800; margin-bottom: 6px; /* Reduced from 2rem */
           background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .result-label { display: block; font-size: 0.85rem; color: rgba(255,255,255,0.6); }
+        .result-label { display: block; font-size: 0.85rem; color: rgba(255,255,255,0.6); } /* Reduced from 0.9rem */
         
         @media (max-width: 968px) {
           .client-showcase-content { grid-template-columns: 1fr; gap: 40px; }
@@ -982,10 +789,10 @@ const PrudataLandingPage = () => {
         }
         
         .carousel-container {
-          position: relative; border-radius: 16px; overflow: hidden;
-          box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          position: relative; border-radius: 16px; overflow: hidden; /* Reduced from 20px */
+          box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
         }
-        .carousel { position: relative; width: 100%; height: 450px; }
+        .carousel { position: relative; width: 100%; height: 450px; } /* Reduced from 500px */
         .carousel-slides {
           display: flex; height: 100%; transition: transform 0.5s ease-in-out;
         }
@@ -993,40 +800,40 @@ const PrudataLandingPage = () => {
           min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
         }
         .carousel-slide img {
-          width: 100%; height: 100%; object-fit: contain;
-          background: #000;
+          width: 100%; height: 100%; object-fit: contain; /* Changed from cover to contain to prevent zoom */
+          background: #000; /* Add black background for letterboxing */
         }
         .carousel-btn {
           position: absolute; top: 50%; transform: translateY(-50%); z-index: 10;
           background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3); color: #fff;
-          width: 45px; height: 45px; border-radius: 50%; font-size: 1.8rem;
+          width: 45px; height: 45px; border-radius: 50%; font-size: 1.8rem; /* Reduced from 50px and 2rem */
           cursor: pointer; transition: all 0.3s ease; backdrop-filter: blur(5px);
         }
         .carousel-btn:hover { background: rgba(0,0,0,0.7); border-color: rgba(255,255,255,0.5); }
-        .carousel-btn-prev { left: 15px; }
-        .carousel-btn-next { right: 15px; }
+        .carousel-btn-prev { left: 15px; } /* Reduced from 20px */
+        .carousel-btn-next { right: 15px; } /* Reduced from 20px */
         .carousel-dots {
-          position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
-          display: flex; gap: 8px; z-index: 10;
+          position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%); /* Reduced from 20px */
+          display: flex; gap: 8px; z-index: 10; /* Reduced from 10px */
         }
         .carousel-dot {
-          width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3);
+          width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); /* Reduced from 12px */
           border: none; cursor: pointer; transition: all 0.3s ease;
         }
         .carousel-dot.active {
-          background: #fff; transform: scale(1.2);
+          background: #fff; transform: scale(1.2); /* Reduced from 1.3 */
         }
         
-        .action-plan { background: #0a0a0f; padding: 80px 30px; }
+        .action-plan { background: #0a0a0f; padding: 80px 30px; } /* Reduced padding */
         .action-content {
-          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center;
+          display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; /* Reduced from 80px */
         }
-        .action-text h2 { text-align: left; margin-bottom: 25px; }
+        .action-text h2 { text-align: left; margin-bottom: 25px; } /* Reduced from 30px */
         .action-text ol {
-          list-style: none; counter-reset: action-counter; display: grid; gap: 25px;
+          list-style: none; counter-reset: action-counter; display: grid; gap: 25px; /* Reduced from 30px */
         }
         .action-text li {
-          counter-increment: action-counter; padding: 25px; background: rgba(255, 255, 255, 0.05);
+          counter-increment: action-counter; padding: 25px; background: rgba(255, 255, 255, 0.05); /* Reduced padding */
           border-radius: 14px; border: 1px solid rgba(255,255,255,0.05); transition: all 0.3s ease;
           opacity: 0; transform: translateX(-30px); transition: all 0.6s ease;
         }
@@ -1039,71 +846,71 @@ const PrudataLandingPage = () => {
         .action-text li:nth-child(4) { transition-delay: 0.4s; }
         .action-text li:hover {
           background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3);
-          transform: translateX(8px);
+          transform: translateX(8px); /* Reduced from 10px */
         }
         .action-text li::before {
-          content: counter(action-counter); display: inline-block; width: 36px; height: 36px;
+          content: counter(action-counter); display: inline-block; width: 36px; height: 36px; /* Reduced from 40px */
           background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); border-radius: 50%;
-          text-align: center; line-height: 36px; margin-right: 12px; font-weight: 800;
-          color: #000000;
+          text-align: center; line-height: 36px; margin-right: 12px; font-weight: 800; /* Reduced from 40px and 15px */
+          color: #000000; /* Black text for contrast */
         }
-        .action-text strong { font-size: 1.2rem; color: #ffffff; display: block; margin-bottom: 8px; }
-        .action-text p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0; }
+        .action-text strong { font-size: 1.2rem; color: #ffffff; display: block; margin-bottom: 8px; } /* Reduced from 1.3rem */
+        .action-text p { font-size: 1rem; color: rgba(255,255,255,0.7); line-height: 1.6; margin: 0; } /* Reduced from 1.05rem */
         .action-image img {
-          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5);
+          width: 100%; border-radius: 16px; box-shadow: 0 15px 45px rgba(0,0,0,0.5); /* Reduced shadow */
         }
         
         @media (max-width: 968px) {
           .action-content { grid-template-columns: 1fr; gap: 40px; }
         }
         
-        .contact { background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px; }
+        .contact { background: linear-gradient(135deg, #1a1a2e 0%, #0a0a0f 100%); padding: 80px 30px; } /* Reduced padding */
         .contact-subtitle {
-          text-align: center; font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 50px;
+          text-align: center; font-size: 1.1rem; color: rgba(255,255,255,0.7); margin-bottom: 50px; /* Reduced from 1.2rem and 60px */
         }
         .contact-content {
-          display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; max-width: 1100px; margin: 0 auto;
+          display: grid; grid-template-columns: 1fr 1.5fr; gap: 50px; max-width: 1100px; margin: 0 auto; /* Reduced from 60px and 1200px */
         }
         .contact-info {
-          background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 16px;
+          background: rgba(255, 255, 255, 0.05); padding: 30px; border-radius: 16px; /* Reduced padding */
           border: 1px solid rgba(255,255,255,0.1);
         }
-        .contact-info h3 { font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; color: #ffffff; }
-        .contact-details { display: grid; gap: 15px; }
+        .contact-info h3 { font-size: 1.8rem; font-weight: 700; margin-bottom: 25px; color: #ffffff; } /* Reduced from 2rem and 30px */
+        .contact-details { display: grid; gap: 15px; } /* Reduced from 20px */
         .contact-item {
-          padding: 18px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;
+          padding: 18px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; /* Reduced padding */
           border: 1px solid rgba(255,255,255,0.05);
         }
         .contact-item strong {
-          display: block; font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 6px;
+          display: block; font-size: 0.85rem; color: rgba(255,255,255,0.5); margin-bottom: 6px; /* Reduced from 0.9rem and 8px */
           text-transform: uppercase; letter-spacing: 1px;
         }
-        .contact-item span { font-size: 1rem; color: #fff; font-weight: 500; }
+        .contact-item span { font-size: 1rem; color: #fff; font-weight: 500; } /* Reduced from 1.1rem */
         
-        .contact-form { display: grid; gap: 15px; }
+        .contact-form { display: grid; gap: 15px; } /* Reduced from 20px */
         .form-group { position: relative; }
         .form-group input,
         .form-group textarea {
-          width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 10px; color: #fff; font-size: 0.95rem; font-family: 'Inter', sans-serif;
+          width: 100%; padding: 14px 18px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); /* Reduced padding */
+          border-radius: 10px; color: #fff; font-size: 0.95rem; font-family: 'Inter', sans-serif; /* Reduced from 1rem */
           transition: all 0.3s ease;
         }
         .form-group input:focus,
         .form-group textarea:focus {
           outline: none; border-color: #ffffff; background: rgba(255,255,255,0.08);
-          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1); /* Reduced from 3px */
         }
-        .form-group textarea { resize: vertical; min-height: 110px; }
+        .form-group textarea { resize: vertical; min-height: 110px; } /* Reduced from 120px */
         .form-group input::placeholder,
         .form-group textarea::placeholder { color: rgba(255,255,255,0.4); }
         
         .submit-btn {
-          padding: 16px 35px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px;
+          padding: 16px 35px; font-size: 1rem; font-weight: 600; border: none; border-radius: 10px; /* Reduced from 18px 40px and 12px */
           background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%); color: #000000;
-          cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4);
+          cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 25px rgba(255, 255, 255, 0.4); /* Reduced shadow */
         }
         .submit-btn:hover:not(:disabled) {
-          transform: translateY(-3px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.6);
+          transform: translateY(-3px); box-shadow: 0 12px 35px rgba(255, 255, 255, 0.6); /* Reduced shadow */
           background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
         }
         .submit-btn:disabled {
@@ -1111,7 +918,7 @@ const PrudataLandingPage = () => {
         }
         
         .form-message {
-          padding: 14px 18px; border-radius: 10px; font-size: 0.95rem; font-weight: 500;
+          padding: 14px 18px; border-radius: 10px; font-size: 0.95rem; font-weight: 500; /* Reduced padding and font */
           animation: fadeInUp 0.3s ease;
         }
         .form-message.success {
@@ -1122,59 +929,59 @@ const PrudataLandingPage = () => {
         }
         
         @media (max-width: 968px) {
-          .contact-content { grid-template-columns: 1fr; gap: 35px; }
+          .contact-content { grid-template-columns: 1fr; gap: 35px; } /* Reduced from 40px */
         }
         
         .footer {
-          background: #0a0a0f; padding: 50px 30px 25px; border-top: 1px solid rgba(255,255,255,0.1);
+          background: #0a0a0f; padding: 50px 30px 25px; border-top: 1px solid rgba(255,255,255,0.1); /* Reduced padding */
         }
         .footer-content {
-          max-width: 1200px; margin: 0 auto; display: grid;
-          grid-template-columns: 2fr 1fr; gap: 50px; margin-bottom: 35px;
+          max-width: 1200px; margin: 0 auto; display: grid; /* Reduced from 1400px */
+          grid-template-columns: 2fr 1fr; gap: 50px; margin-bottom: 35px; /* Reduced from 60px and 40px */
         }
         .footer-brand h3 {
-          font-size: 1.8rem; font-weight: 800; margin-bottom: 12px;
+          font-size: 1.8rem; font-weight: 800; margin-bottom: 12px; /* Reduced from 2rem and 15px */
           background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
           -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         }
-        .footer-brand p { font-size: 0.95rem; color: rgba(255,255,255,0.6); line-height: 1.6; }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 25px; align-items: start; }
+        .footer-brand p { font-size: 0.95rem; color: rgba(255,255,255,0.6); line-height: 1.6; } /* Reduced from 1rem */
+        .footer-links { display: flex; flex-wrap: wrap; gap: 25px; align-items: start; } /* Reduced from 30px */
         .footer-links a {
           color: rgba(255,255,255,0.7); text-decoration: none; font-weight: 500;
           transition: all 0.3s ease;
         }
         .footer-links a:hover { color: #ffffff; }
         .footer-bottom {
-          max-width: 1200px; margin: 0 auto; padding-top: 25px;
+          max-width: 1200px; margin: 0 auto; padding-top: 25px; /* Reduced from 1400px and 30px */
           border-top: 1px solid rgba(255,255,255,0.05); text-align: center;
         }
-        .footer-bottom p { color: rgba(255,255,255,0.5); font-size: 0.9rem; }
+        .footer-bottom p { color: rgba(255,255,255,0.5); font-size: 0.9rem; } /* Reduced from 0.95rem */
         
         @media (max-width: 768px) {
-          .footer-content { grid-template-columns: 1fr; gap: 25px; }
-          .footer-links { flex-direction: column; gap: 12px; }
+          .footer-content { grid-template-columns: 1fr; gap: 25px; } /* Reduced from 30px */
+          .footer-links { flex-direction: column; gap: 12px; } /* Reduced from 15px */
         }
       `}</style>
 
       {isLoading && (
         <div className="loading-screen">
-          <div className="loading-logo">
-            <div className="logo-container">
-              <img 
-                src={`${process.env.PUBLIC_URL}/logo192.png`} 
-                alt="Prudata Logo" 
-                className="loading-logo-image"
-              />
-            </div>
-            <h1>Prudata</h1>
-            <div className="loading-subtitle">Where Ideas Meet Impact – Launch Smarter, Grow Faster</div>
-          </div>
-          <div className="spinner"></div>
-          <div className="loading-progress">
-            <div className="loading-progress-bar" style={{ width: `${loadingProgress}%` }}></div>
-          </div>
-          <div className="loading-percentage">{Math.min(100, Math.round(loadingProgress))}%</div>
-        </div>
+  <div className="loading-logo">
+    <div className="logo-container">
+      <img 
+        src={`${process.env.PUBLIC_URL}/logo192.png`} 
+        alt="Prudata Logo" 
+        className="loading-logo-image"
+      />
+    </div>
+    <h1>Prudata</h1>
+    <div className="loading-subtitle">Where Ideas Meet Impact – Launch Smarter, Grow Faster</div>
+  </div>
+  <div className="spinner"></div>
+  <div className="loading-progress">
+    <div className="loading-progress-bar" style={{ width: `${loadingProgress}%` }}></div>
+  </div>
+  <div className="loading-percentage">{Math.min(100, Math.round(loadingProgress))}%</div>
+</div>
       )}
 
       {!isLoading && (
@@ -1191,7 +998,6 @@ const PrudataLandingPage = () => {
                 <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Workflow</a>
                 <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
                 <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Clients</a>
-                <a href="#scroll-demo" onClick={(e) => { e.preventDefault(); scrollToSection('scroll-demo'); }}>Scroll Demo</a>
                 <a href="#contact" className="cta-button" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Get Started</a>
               </div>
               <div className="hamburger" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -1349,45 +1155,6 @@ const PrudataLandingPage = () => {
             </div>
           </section>
 
-          {/* Scroll Animation Demo Section */}
-          <section 
-            id="scroll-demo" 
-            className="scroll-section"
-            ref={el => sectionRefs.current['scroll-demo'] = el}
-          >
-            <div className="c-hotels">
-              <h2 className="c-hotels__title">Interactive Scroll Experience</h2>
-              <div className="c-hotels__list">
-                {scrollDemoItems.map((item, index) => (
-                  <div key={index} className="c-hotels__item">
-                    <div className="c-hotels__item-figure">
-                      <img 
-                        src={`${process.env.PUBLIC_URL}/${item.image}`} 
-                        alt={item.title}
-                        loading="lazy"
-                      />
-                    </div>
-                    <div className="c-hotels__item-info">
-                      <h3 className="c-hotels__item-title">{item.title}</h3>
-                      <p className="c-hotels__item-subtitle">{item.subtitle}</p>
-                      <p className="c-hotels__item-excerpt">{item.excerpt}</p>
-                      <a 
-                        href="#contact" 
-                        className="c-hotels__item-link"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          scrollToSection('contact');
-                        }}
-                      >
-                        Learn More
-                      </a>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
           <section 
             id="differentiators" 
             className={`section ${visibleSections.has('differentiators') ? 'visible' : ''}`}
@@ -1401,7 +1168,7 @@ const PrudataLandingPage = () => {
               <div className="differentiators-grid">
                 <div className="differentiator-card">
                   <div className="differentiator-icon">
-                    <SVGIcon name="research" className="svg-icon" />
+                  
                   </div>
                   <h3>End-to-End Research & Talent Orchestration</h3>
                   <p>
@@ -1420,7 +1187,7 @@ const PrudataLandingPage = () => {
                 </div>
                 <div className="differentiator-card">
                   <div className="differentiator-icon">
-                    <SVGIcon name="startup" className="svg-icon" />
+                   
                   </div>
                   <h3>Comprehensive Startup & Investor Ecosystem</h3>
                   <p>
@@ -1439,7 +1206,7 @@ const PrudataLandingPage = () => {
                 </div>
                 <div className="differentiator-card">
                   <div className="differentiator-icon">
-                    <SVGIcon name="learning" className="svg-icon" />
+                    
                   </div>
                   <h3>Dynamic Learning & Community Platform</h3>
                   <p>
@@ -1756,7 +1523,6 @@ const PrudataLandingPage = () => {
                   <a href="#workflow" onClick={(e) => { e.preventDefault(); scrollToSection('workflow'); }}>Solutions</a>
                   <a href="#process" onClick={(e) => { e.preventDefault(); scrollToSection('process'); }}>Process</a>
                   <a href="#clients" onClick={(e) => { e.preventDefault(); scrollToSection('clients'); }}>Case Studies</a>
-                  <a href="#scroll-demo" onClick={(e) => { e.preventDefault(); scrollToSection('scroll-demo'); }}>Scroll Demo</a>
                   <a href="#contact" onClick={(e) => { e.preventDefault(); scrollToSection('contact'); }}>Contact</a>
                 </div>
               </div>
