@@ -341,25 +341,29 @@ const AdminDashboard = () => {
     <div className="admin-dashboard">
       {/* Header */}
       <header className="admin-header">
-        <div className="header-left">
-          <h1> Contact Requests Dashboard</h1>
-          <p className="header-subtitle">Manage all contact form submissions</p>
-        </div>
         <div className="header-actions">
-          <button 
-            className="btn-refresh" 
-            onClick={fetchContacts} 
-            disabled={loading}
-          >
-            {loading ? ' Refreshing...' : ' Refresh'}
-          </button>
-          <button className="btn-export" onClick={exportToCSV}>
-           Export CSV
-          </button>
-          <button className="btn-logout" onClick={logout}>
-           Logout
-          </button>
-        </div>
+  {/* Add this new button */}
+  <button 
+    className="btn-email-system"
+    onClick={() => window.open('https://prudata-mail.onrender.com/', '_blank')}
+  >
+    📧 Email System
+  </button>
+  
+  <button 
+    className="btn-refresh" 
+    onClick={fetchContacts} 
+    disabled={loading}
+  >
+    {loading ? ' 🔄 Refreshing...' : ' 🔄 Refresh'}
+  </button>
+  <button className="btn-export" onClick={exportToCSV}>
+    📥 Export CSV
+  </button>
+  <button className="btn-logout" onClick={logout}>
+    🚪 Logout
+  </button>
+</div>
       </header>
 
       {/* Stats Cards */}
