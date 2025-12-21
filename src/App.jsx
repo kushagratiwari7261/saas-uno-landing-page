@@ -1420,7 +1420,8 @@ const PrudataLandingPage = () => {
                     <div className="contact-item">
                       <strong>Point of Contact</strong>
                       <span>Ningaraj Rawor
-                       Contact Number +91 6364153540</span>
+                       <br/>
+                        +91 6364153540</span>
                     </div>
                     <div className="contact-item">
                       <strong>Company</strong>
